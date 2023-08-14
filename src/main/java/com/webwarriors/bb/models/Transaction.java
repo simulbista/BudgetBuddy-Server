@@ -15,18 +15,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection="transaction")
+@Document(collection = "transaction")
 public class Transaction {
-	
+
 	@Id
 	private ObjectId tId;
 	private ObjectId uId;
-	private double transactionAmount;
-	private Date transactionDate;
+	// if g_id exists, it means the record is a group transaction (so only expense,
+	// as no income for group)
 	private ObjectId gId;
-	//true= income, false = expense
-	private boolean isIncome;
-	
+	private double expense;
+	private double income;
+	private Date transactionDate;
+
 	@CreatedDate
 	private Date createdDate;
 	@LastModifiedDate

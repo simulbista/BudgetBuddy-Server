@@ -4,7 +4,6 @@ import java.util.Date;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,13 +14,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "groups")
-public class Group {
-	@Id
+@Document(collection="group-history")
+public class GroupHistory {
+	private ObjectId ghId;
 	private ObjectId gId;
-	private String gName;
-	private ObjectId groupHeadId;
-
+	private double groupBudget;
 	@CreatedDate
 	private Date createdDate;
 	@LastModifiedDate
