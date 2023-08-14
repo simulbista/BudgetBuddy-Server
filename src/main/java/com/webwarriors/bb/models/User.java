@@ -24,7 +24,8 @@ enum Role {
 public class User {
 
 	@MongoId(targetType = FieldType.STRING)
-	// to map POJO uId of datatype String to _id in mongo collection
+	// to map POJO uid of datatype String to _id in mongo collection
+	//had to use uid instead of uId since the mapping converts the field to all small case
 	private String uid;
 	private String nickName;
 	private String email;
@@ -32,6 +33,7 @@ public class User {
 	private String password;
 	private Role role;
 	private String gid;
+	private boolean deleteFlag;
 
 	@CreatedDate
 	private Date createdDate;

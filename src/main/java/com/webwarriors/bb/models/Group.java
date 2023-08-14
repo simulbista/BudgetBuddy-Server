@@ -25,6 +25,7 @@ public class Group {
 	private String gId;
 	private String gName;
 	private String groupHeadId;
+	private boolean deleteFlag;
 
 	@CreatedDate
 	private Date createdDate;

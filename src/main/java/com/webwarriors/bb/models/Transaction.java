@@ -30,6 +30,7 @@ public class Transaction {
 	private double expense;
 	private double income;
 	private Date transactionDate;
+	private boolean deleteFlag;
 
 	@CreatedDate
 	private Date createdDate;

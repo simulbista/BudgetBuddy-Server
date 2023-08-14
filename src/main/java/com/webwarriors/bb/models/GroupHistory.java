@@ -25,6 +25,7 @@ public class GroupHistory {
 	private String ghid;
 	private String gid;
 	private double groupBudget;
+	private boolean deleteFlag;
 	@CreatedDate
 	private Date createdDate;
 	@LastModifiedDate

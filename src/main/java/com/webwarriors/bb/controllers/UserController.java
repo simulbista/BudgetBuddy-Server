@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,17 +73,58 @@ public class UserController {
 	public ResponseEntity<String> updateUser(@RequestBody User user) {
 		String message;
 		try {
-			if (user != null) {
-				userService.updateUser(user);
-				message = "User with email ".concat(user.getEmail()).concat(" has been updated!");
-				return new ResponseEntity<String>(message, HttpStatus.CREATED);
-			}
+			userService.updateUser(user);
+			message = "User with email ".concat(user.getEmail()).concat(" has been updated!");
+			return new ResponseEntity<String>(message, HttpStatus.CREATED);
 		} catch (Exception e) {
 			message = "Error updating user: " + e.getMessage();
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
-		message = "User doesn't exist!";
-		return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
+	}
+
+	// add the user to a group
+	// API end point: POST /api/user/{uid}/addgroup/{gid}
+	@PutMapping("/{uid}/addgroup/{gid}")
+	public ResponseEntity<String> addUserToGroup(@PathVariable String uid, @PathVariable String gid) {
+		String message;
+		try {
+			message = "User with id ".concat(uid).concat(" has been added to the group ".concat(gid).concat("."));
+			userService.addUserToGroup(uid, gid);
+			return new ResponseEntity<String>(message, HttpStatus.CREATED);
+		} catch (Exception e) {
+			message = "Error updating user: " + e.getMessage();
+			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	// remove the user from a group
+	// API end point: PUT /api/user/{uid}/removegroup/{gid}
+	@PutMapping("/{uid}/removegroup/{gid}")
+	public ResponseEntity<String> removeUserFromGroup(@PathVariable String uid, @PathVariable String gid) {
+		String message;
+		try {
+			message = "User with id ".concat(uid).concat(" has been added to the group ".concat(gid).concat("."));
+			userService.removeUserFromGroup(uid, gid);
+			return new ResponseEntity<String>(message, HttpStatus.CREATED);
+		} catch (Exception e) {
+			message = "Error updating user: " + e.getMessage();
+			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	// delete the user (soft delete)
+	// API end point: DELETE /api/user/{uid}
+	@DeleteMapping("/{uid}")
+	public ResponseEntity<String> removeUser(@PathVariable String uid) {
+		String message;
+		try {
+			message = "User with id ".concat(uid).concat(" has been removed!");
+			userService.removeUser(uid);
+			return new ResponseEntity<String>(message, HttpStatus.CREATED);
+		} catch (Exception e) {
+			message = "Error deleting user: " + e.getMessage();
+			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
+		}
 	}
 
 }
