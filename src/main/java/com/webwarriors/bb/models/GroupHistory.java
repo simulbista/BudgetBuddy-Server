@@ -12,32 +12,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-enum Role {
-	ADMIN, USER
-};
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users")
-
-public class User {
+@Document(collection = "group-history")
+public class GroupHistory {
 
 	@MongoId(targetType = FieldType.STRING)
-	// to map POJO uid of datatype String to _id in mongo collection
-	//had to use uid instead of uId since the mapping converts the field to all small case
-	private String uid;
-	private String nickName;
-	private String email;
-	// remember to encode the password later
-	private String password;
-	private Role role;
+	// to map POJO ghid of datatype String to _id in mongo collection
+	// had to use ghid instead of ghId since the mapping converts the field to all
+	// small case
+	private String ghid;
 	private String gid;
+	private double groupBudget;
 	private boolean deleteFlag;
-
 	@CreatedDate
 	private Date createdDate;
 	@LastModifiedDate
 	private Date updatedAt;
-
 }

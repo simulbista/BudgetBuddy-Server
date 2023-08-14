@@ -2,11 +2,11 @@ package com.webwarriors.bb.models;
 
 import java.util.Date;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,14 +15,18 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection="groups")
+@Document(collection = "groups")
 public class Group {
-	@Id
-	private ObjectId gId;
+
+	@MongoId(targetType = FieldType.STRING)
+	// to map POJO gid of datatype String to _id in mongo collection
+	// had to use gid instead of gId since the mapping converts the field to all
+	// small case
+	private String gId;
 	private String gName;
-	private ObjectId groupHeadId;
-	private double groupBudget;
-	
+	private String groupHeadId;
+	private boolean deleteFlag;
+
 	@CreatedDate
 	private Date createdDate;
 	@LastModifiedDate
