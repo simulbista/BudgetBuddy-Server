@@ -2,11 +2,11 @@ package com.webwarriors.bb.models;
 
 import java.util.Date;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,14 +23,15 @@ enum Role {
 
 public class User {
 
-	@Id
-	private ObjectId uId;
+	@MongoId(targetType = FieldType.STRING)
+	// to map POJO uId of datatype String to _id in mongo collection
+	private String uid;
 	private String nickName;
 	private String email;
 	// remember to encode the password later
 	private String password;
 	private Role role;
-	private ObjectId gId;
+	private String gid;
 
 	@CreatedDate
 	private Date createdDate;

@@ -2,10 +2,11 @@ package com.webwarriors.bb.models;
 
 import java.util.Date;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,10 +15,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection="group-history")
+@Document(collection = "group-history")
 public class GroupHistory {
-	private ObjectId ghId;
-	private ObjectId gId;
+
+	@MongoId(targetType = FieldType.STRING)
+	// to map POJO ghid of datatype String to _id in mongo collection
+	// had to use ghid instead of ghId since the mapping converts the field to all
+	// small case
+	private String ghid;
+	private String gid;
 	private double groupBudget;
 	@CreatedDate
 	private Date createdDate;

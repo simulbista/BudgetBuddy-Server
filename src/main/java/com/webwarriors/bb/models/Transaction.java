@@ -2,11 +2,11 @@ package com.webwarriors.bb.models;
 
 import java.util.Date;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,12 +18,15 @@ import lombok.NoArgsConstructor;
 @Document(collection = "transaction")
 public class Transaction {
 
-	@Id
-	private ObjectId tId;
-	private ObjectId uId;
+	@MongoId(targetType = FieldType.STRING)
+	// to map POJO tid of datatype String to _id in mongo collection
+	// had to use tid instead of tId since the mapping converts the field to all
+	// small case
+	private String tid;
+	private String uid;
 	// if g_id exists, it means the record is a group transaction (so only expense,
 	// as no income for group)
-	private ObjectId gId;
+	private String gid;
 	private double expense;
 	private double income;
 	private Date transactionDate;
