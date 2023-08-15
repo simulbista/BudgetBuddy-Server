@@ -29,9 +29,9 @@ const Navigation = () => {
   return (
     <AppBar position="static" sx={{ backgroundColor: "#00A03E" }}>
       <Toolbar>
-      	<Avatar sx={{ m: 1, bgcolor: "white" }}>
-		  <img src="./vite.svg" alt="Logo" />
-		</Avatar>
+        <Avatar sx={{ m: 1, bgcolor: "white" }}>
+          <img src="./vite.svg" alt="Logo" />
+        </Avatar>
         <Typography
           variant="h6"
           component="div"
@@ -40,27 +40,28 @@ const Navigation = () => {
           Budget Buddy
         </Typography>
         <nav>
-            <>
-              <StyledNavLink to="/personal">Personal</StyledNavLink>
-              <StyledNavLink to="/group">Group</StyledNavLink>
-               <StyledNavLink to="/userProfile">User Profile</StyledNavLink>
-              <StyledNavLink to="/groupProfile">Group Profile</StyledNavLink>
-              <Button
-                onClick={handleLogout}
-                sx={{
-				  color: "#00A03E",
-                  marginLeft: "10px",
-                  fontWeight: "bold",
+          <>
+            <StyledNavLink to="/personal">Personal</StyledNavLink>
+            <StyledNavLink to="/group">Group</StyledNavLink>
+            <StyledNavLink to="/userProfile">User Profile</StyledNavLink>
+            <StyledNavLink to="/groupProfile">Group Profile</StyledNavLink>
+            <Button
+              onClick={handleLogout}
+              sx={{
+                color: "#00A03E",
+                marginLeft: "10px",
+                fontWeight: "bold",
+                backgroundColor: "#FFDB58",
+                "&:hover": {
                   backgroundColor: "#FFDB58",
-                  "&:hover": {
-                    backgroundColor: "#FFDB58",
-                    color: "#00A03E",
-                  },
-                }}
-              >
-                Logout
-              </Button>
-            </>
+                  color: "#00A03E",
+                  borderColor: "#FFDB58",
+                },
+              }}
+            >
+              Logout
+            </Button>
+          </>
         </nav>
       </Toolbar>
     </AppBar>
