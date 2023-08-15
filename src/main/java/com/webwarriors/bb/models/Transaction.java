@@ -9,13 +9,15 @@ import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "transaction")
+@Builder
+@Document(collection = "transactions")
 public class Transaction {
 
 	@MongoId(targetType = FieldType.STRING)
@@ -30,6 +32,7 @@ public class Transaction {
 	private double expense;
 	private double income;
 	private Date transactionDate;
+	private String category;
 	private boolean deleteFlag;
 
 	@CreatedDate

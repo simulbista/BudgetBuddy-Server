@@ -92,7 +92,7 @@ public class GroupService {
 
 		// Retrieve the existing group data
 		Group existingGroup = foundGroup.get();
-		// Copy the new data(just the ngroup name) to the existing group object,
+		// Copy the new data(just the group name) to the existing group object,
 		// preserving other fields such as createdDate and ghid
 		// if this is not done, both the fields get overwritten to null (gets replaced)
 		existingGroup.setGName(group.getGName());
@@ -107,8 +107,9 @@ public class GroupService {
 		if (!optionalFoundGroup.isPresent())
 			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
 		
-		//check2: if the group has not been deleted (deleteFlag=true)
-		if(optionalFoundGroup.get().isDeleteFlag()) throw new Exception("The group with id ".concat(gid).concat(" has been deleted already!"));
+		// check2: if the group has not been deleted (deleteFlag=true)
+		if (optionalFoundGroup.get().isDeleteFlag())
+			throw new Exception("The group with id ".concat(gid).concat(" has been deleted already!"));
 
 		Group foundGroup = optionalFoundGroup.get();
 		
