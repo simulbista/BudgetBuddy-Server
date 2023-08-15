@@ -118,6 +118,10 @@ public class UserService {
 			throw new Exception(
 					"User Validation failed! The user email and nick name in the request body don't belong to the same user.");
 
+		// if the user is already in the group i.e. its gid is equal to the input gid
+		if (user.getGid().equals(gid))
+			throw new Exception("User with id " + uid + " is already in the group " + gid + ".");
+
 		// set gid to user (so the user has joined the group)
 		user.setGid(gid);
 		return userRepository.save(user);
@@ -140,6 +144,10 @@ public class UserService {
 		if (!group.getGhid().equals(uid))
 			throw new Exception("Unauthorized Access! User with id " + uid
 					+ " is not the head of the group".concat(gid).concat(".No delete permission!"));
+
+		// if the user has already been removed from the group i.e. gid is null
+		if (user.getGid() == null)
+			throw new Exception("User with id " + uid + " is not in the group " + gid + ".");
 
 		user.setGid(null);
 		userRepository.save(user);
