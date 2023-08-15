@@ -32,7 +32,7 @@ public class UserController {
 	// get user info by uId
 	// API end point: GET /api/user/{uid}
 	@GetMapping("/{uid}")
-	public Optional<User> getUserById(@PathVariable String uid) {
+	public Optional<User> getUserById(@PathVariable String uid) throws Exception {
 		return userService.getUserByUid(uid);
 	}
 
@@ -55,16 +55,15 @@ public class UserController {
 	@PostMapping("/")
 	public ResponseEntity<String> addUser(@RequestBody User user) {
 		try {
-			if (user != null) {
-				userService.addUser(user);
-				String successMessage = "User with email".concat(user.getEmail()).concat(" has been created!");
-				return new ResponseEntity<String>(successMessage, HttpStatus.CREATED);
-			}
+
+			userService.addUser(user);
+			String successMessage = "User with email".concat(user.getEmail()).concat(" has been created!");
+			return new ResponseEntity<String>(successMessage, HttpStatus.CREATED);
+
 		} catch (Exception e) {
 			String errorMessage = "Error adding user: " + e.getMessage();
 			return new ResponseEntity<String>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
-		return null;
 	}
 
 	// update the user
@@ -80,6 +79,7 @@ public class UserController {
 			message = "Error updating user: " + e.getMessage();
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
+
 	}
 
 	// add the user to a group
@@ -96,7 +96,7 @@ public class UserController {
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	// remove the user from a group
 	// API end point: PUT /api/user/{uid}/removegroup/{gid}
 	@PutMapping("/{uid}/removegroup/{gid}")
@@ -111,7 +111,7 @@ public class UserController {
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	// delete the user (soft delete)
 	// API end point: DELETE /api/user/{uid}
 	@DeleteMapping("/{uid}")
