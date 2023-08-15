@@ -1,140 +1,156 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import Button from "@mui/material/Button";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
+import React, { useState, useEffect } from "react";
+import { Typography, Button, Modal, TextField, Box } from "@mui/material";
 
 const UserProfile = () => {
-  const [user, setUser] = useState(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    nickname: "JohnDoe",
+    email: "john@example.com",
+    role: "User",
+  });
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const { data: response } = await axios.get(
-          `./api/user/${u_id}`,
-          {
-            headers: {
-              Authorization: `${token}`,
-            },
-          }
-        );
-        setUser(response);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editedNickname, setEditedNickname] = useState(userInfo.nickname);
+  const [editedEmail, setEditedEmail] = useState(userInfo.email);
 
-    fetchUserData();
-  }, [u_id]);
-
-  const handleUpdateUser = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `./api/carts`,
-        {
-            f_id: flower?.f_id,
-            quantity: parseInt(qty),
-            name: flower?.name,
-            price: flower?.price
-        },
-        {
-          headers: {
-            Authorization: token,
-          },
-        }
-      );
-      // Handle the response here, such as displaying a success message 
-      console.log("User details updated:", response.data);
-      setSnackbarOpen(true);
-      navigate("/userProfile");
-    } catch (error) {
-      console.error("Error updating user details:", error);
-    }
+  const handleOpenModal = () => {
+    setModalOpen(true);
+    setEditedNickname(userInfo.nickname);
+    setEditedEmail(userInfo.email);
   };
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleSaveProfile = () => {
+    setUserInfo({
+      ...userInfo,
+      nickname: editedNickname,
+      email: editedEmail,
+    });
+    handleCloseModal();
+  };
+
+  useEffect(() => {
+    // const fetchUserInfo = async () => {
+    //   try {
+    //     // Make a GET request to fetch the expenses from the API endpoint
+    //     const response = await axios.get(`./api/user`, {
+    //       headers: {
+    //         Authorization: token,
+    //       },
+    //     });
+    //      Set the retrieved  data to the component state
+    //     setUserInfo(response.data);
+    //   } catch (error) {
+    //     console.error("Error fetching transactions:", error);
+    //   }
+    // };
+    // fetchUserInfo();
+  }, []);
+
   return (
-    <>
-      {user ? (
-        <div className="details">
-          <div className="details-image">
-            <img
-              src={`/images/flowers-${flower.f_id}.jpg`}
-              alt="flowerDetail"
-            ></img>
-          </div>
-          <div className="details-info">
-            <ul>
-              <li>
-                <h4>{flower.name}</h4>
-              </li>
-              <li>{flower.category}</li>
-              <li>
-                <b>${flower.price}</b>
-              </li>
-              <li>
-                Description:
-                <div>{flower.description}</div>
-              </li>
-            </ul>
-          </div>
-          <div className="details-action">
-            <ul>
-              <li>
-                Price: <b>{flower.price} $</b>
-              </li>
-              <li>Status: {flower.stock > 0 ? "In Stock" : "Unavailable"}</li>
-              <li>
-                Qty:{" "}
-                <select
-                  value={budget}
-                  onChange={(e) => {
-                    setBudget(e.target.value);
-                  }}
-                >
-                  {[...Array(flower.stock).keys()].map((x) => (
-                    <option key={x + 1} value={x + 1}>
-                      {x + 1}
-                    </option>
-                  ))}
-                </select>
-              </li>
-              <li>
-                {flower.stock > 0 && (
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#00A03E" }}
-                    onClick={handleUpdateBudget}
-                    className="button"
-                  >
-                    Update Budget
-                  </Button>
-                )}
-              </li>
-            </ul>
-          </div>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
+    <div>
+      <Typography variant="h4" gutterBottom>
+        User Profile
+      </Typography>
+      <Box marginBottom={2}>
+        <Typography variant="h6">Nickname: {userInfo.nickname}</Typography>
+        <Typography variant="h6">Email: {userInfo.email}</Typography>
+        <Typography variant="h6">Role: {userInfo.role}</Typography>
+      </Box>
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={handleOpenModal}
+        sx={{
+          color: "#00A03E",
+          marginLeft: "10px",
+          fontWeight: "bold",
+          backgroundColor: "#FFDB58",
+          "&:hover": {
+            backgroundColor: "#FFDB58",
+            color: "#00A03E",
+            borderColor: "#FFDB58",
+          },
+        }}
       >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
+        Edit Profile
+      </Button>
+      <Modal open={modalOpen} onClose={handleCloseModal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 300,
+            bgcolor: "background.paper",
+            border: "2px solid #00A03E",
+            boxShadow: 24,
+            p: 4,
+          }}
         >
-          Flower added to cart!
-        </Alert>
-      </Snackbar>
-    </>
+          <Typography variant="h6" component="h2">
+            Edit Profile
+          </Typography>
+          <Box mt={2}>
+            <TextField
+              label="Nickname"
+              fullWidth
+              value={editedNickname}
+              onChange={(e) => setEditedNickname(e.target.value)}
+            />
+          </Box>
+          <Box mt={2}>
+            <TextField
+              label="Email"
+              fullWidth
+              value={editedEmail}
+              onChange={(e) => setEditedEmail(e.target.value)}
+            />
+          </Box>
+          <Box mt={2} display="flex" justifyContent="flex-end">
+            <Button
+              variant="outlined"
+              color="primary"
+              sx={{
+                color: "#00A03E",
+                marginLeft: "10px",
+                fontWeight: "bold",
+                backgroundColor: "#FFDB58",
+                "&:hover": {
+                  backgroundColor: "#FFDB58",
+                  color: "#00A03E",
+                  borderColor: "#FFDB58",
+                },
+              }}
+              onClick={handleSaveProfile}
+            >
+              Save
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              sx={{
+                color: "#00A03E",
+                marginLeft: "10px",
+                fontWeight: "bold",
+                backgroundColor: "#FFDB58",
+                "&:hover": {
+                  backgroundColor: "#FFDB58",
+                  color: "#00A03E",
+                  borderColor: "#FFDB58",
+                },
+              }}
+              onClick={handleCloseModal}
+            >
+              Cancel
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </div>
   );
 };
 

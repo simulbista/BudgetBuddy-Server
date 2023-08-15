@@ -1,142 +1,266 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import Button from "@mui/material/Button";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
+import React, { useState, useEffect } from "react";
+import {
+  Typography,
+  Button,
+  Modal,
+  TextField,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 
 const GroupProfile = () => {
-  const { g_id } = useParams();
-  const [group, setGroup] = useState(null);
-  const [budget, setBudget] = useState(0);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const navigate = useNavigate();
+  const [groupInfo, setGroupInfo] = useState({
+    groupName: "",
+    members: [],
+    groupBudget: 0.0,
+  });
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [groupNameInput, setGroupNameInput] = useState("");
+  const [numMembersToAdd, setNumMembersToAdd] = useState(0);
+  const [memberInputs, setMemberInputs] = useState([]);
+  const [groupBudgetInput, setGroupBudgetInput] = useState(0.0);
 
   useEffect(() => {
-    const fetchGroupData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const { data: response } = await axios.get(
-          `./api/group/${g_id}`,
-          {
-            headers: {
-              Authorization: `${token}`,
-            },
-          }
-        );
-        setGroup(response);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    // const fetchGroupInfo = async () => {
+    //   try {
+    //     // Make a GET request to fetch the expenses from the API endpoint
+    //     const response = await axios.get(`./api/group`, {
+    //       headers: {
+    //         Authorization: token,
+    //       },
+    //     });
+    //      Set the retrieved  data to the component state
+    //     setGroupInfo(response.data);
+    //   } catch (error) {
+    //     console.error("Error fetching transactions:", error);
+    //   }
+    // };
+    // fetchGroupInfo();
+  }, []);
 
-    fetchGroupData();
-  }, [g_id]);
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  };
 
-  const handleUpdateBudget = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `./api/carts`,
-        {
-            f_id: flower?.f_id,
-            quantity: parseInt(qty),
-            name: flower?.name,
-            price: flower?.price
-        },
-        {
-          headers: {
-            Authorization: token,
-          },
-        }
-      );
-      // Handle the response here, such as displaying a success message 
-      console.log("Group budget updated:", response.data);
-      setSnackbarOpen(true);
-      navigate("/groupProfile");
-    } catch (error) {
-      console.error("Error updating group budget:", error);
-    }
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setGroupNameInput("");
+    setNumMembersToAdd(0);
+    setMemberInputs([]);
+  };
+
+  const handleAddMemberInputChange = (index, value) => {
+    const updatedMemberInputs = [...memberInputs];
+    updatedMemberInputs[index] = value;
+    setMemberInputs(updatedMemberInputs);
+  };
+
+  const handleSaveGroupInfo = () => {
+    setGroupInfo({
+      groupName: groupNameInput,
+      members: memberInputs.filter((input) => input.trim() !== ""),
+      groupBudget: parseFloat(groupBudgetInput),
+    });
+    handleCloseModal();
+  };
+
+  const handleEditGroup = () => {
+    setGroupNameInput(groupInfo.groupName);
+    setNumMembersToAdd(groupInfo.members.length);
+    setMemberInputs(groupInfo.members);
+    handleOpenModal();
+  };
+
+  const handleLeaveGroup = () => {
+    setGroupInfo({
+      groupName: "",
+      members: [],
+    });
   };
 
   return (
-    <>
-      {group ? (
-        <div className="details">
-          <div className="details-image">
-            <img
-              src={`/images/flowers-${flower.f_id}.jpg`}
-              alt="flowerDetail"
-            ></img>
-          </div>
-          <div className="details-info">
-            <ul>
-              <li>
-                <h4>{flower.name}</h4>
-              </li>
-              <li>{flower.category}</li>
-              <li>
-                <b>${flower.price}</b>
-              </li>
-              <li>
-                Description:
-                <div>{flower.description}</div>
-              </li>
-            </ul>
-          </div>
-          <div className="details-action">
-            <ul>
-              <li>
-                Price: <b>{flower.price} $</b>
-              </li>
-              <li>Status: {flower.stock > 0 ? "In Stock" : "Unavailable"}</li>
-              <li>
-                Qty:{" "}
-                <select
-                  value={budget}
-                  onChange={(e) => {
-                    setBudget(e.target.value);
-                  }}
-                >
-                  {[...Array(flower.stock).keys()].map((x) => (
-                    <option key={x + 1} value={x + 1}>
-                      {x + 1}
-                    </option>
-                  ))}
-                </select>
-              </li>
-              <li>
-                {flower.stock > 0 && (
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: "#00A03E" }}
-                    onClick={handleUpdateBudget}
-                    className="button"
-                  >
-                    Update Budget
-                  </Button>
-                )}
-              </li>
-            </ul>
-          </div>
-        </div>
-      ) : (
-        <p>Loading...</p>
+    <div>
+      <Typography variant="h4" gutterBottom>
+        Group Profile
+      </Typography>
+      {groupInfo.groupName && (
+        <Typography variant="h6">Group Name: {groupInfo.groupName}</Typography>
       )}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
+      {groupInfo.groupBudget !== 0 && (
+        <Typography variant="h6">
+          Group Budget: {groupInfo.groupBudget}
+        </Typography>
+      )}
+      {groupInfo.members.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
         >
-          Flower added to cart!
-        </Alert>
-      </Snackbar>
-    </>
+          <List>
+            <Typography variant="h6">Members:</Typography>
+            {groupInfo.members.map((member, index) => (
+              <ListItem key={index}>
+                <ListItemText primary={member} />
+              </ListItem>
+            ))}
+          </List>
+        </div>
+      )}
+      {groupInfo.groupName && (
+        <div>
+          <Button
+            variant="outlined"
+            color="primary"
+            sx={{
+              color: "#00A03E",
+              marginLeft: "10px",
+              fontWeight: "bold",
+              backgroundColor: "#FFDB58",
+              "&:hover": {
+                backgroundColor: "#FFDB58",
+                color: "#00A03E",
+                borderColor: "#FFDB58",
+              },
+            }}
+            onClick={handleEditGroup}
+          >
+            Edit Group
+          </Button>
+          <Button
+            sx={{
+              color: "#00A03E",
+              marginLeft: "10px",
+              fontWeight: "bold",
+              backgroundColor: "#FFDB58",
+              "&:hover": {
+                backgroundColor: "#FFDB58",
+                color: "#00A03E",
+                borderColor: "#FFDB58",
+              },
+            }}
+            variant="outlined"
+            color="secondary"
+            onClick={handleLeaveGroup}
+          >
+            Leave Group
+          </Button>
+        </div>
+      )}
+      {!groupInfo.groupName && (
+        <Button
+          variant="outlined"
+          color="primary"
+          sx={{
+            color: "#00A03E",
+            marginLeft: "10px",
+            fontWeight: "bold",
+            backgroundColor: "#FFDB58",
+            "&:hover": {
+              backgroundColor: "#FFDB58",
+              color: "#00A03E",
+              borderColor: "#FFDB58",
+            },
+          }}
+          onClick={handleOpenModal}
+        >
+          Add Group
+        </Button>
+      )}
+      <Modal open={modalOpen} onClose={handleCloseModal}>
+        <Paper
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            p: 4,
+          }}
+        >
+          <Typography variant="h6">Add Group</Typography>
+          <TextField
+            label="Group Name"
+            value={groupNameInput}
+            onChange={(e) => setGroupNameInput(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            type="number"
+            label="Group Budget"
+            value={groupBudgetInput}
+            required
+            onChange={(e) => setGroupBudgetInput(parseFloat(e.target.value))}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            type="number"
+            label="Number of Members to Add"
+            value={numMembersToAdd}
+            required
+            onChange={(e) => setNumMembersToAdd(parseInt(e.target.value))}
+            fullWidth
+            margin="normal"
+          />
+          {Array.from({ length: numMembersToAdd }).map((_, index) => (
+            <TextField
+              key={index}
+              label={`Member ${index + 1}`}
+              value={memberInputs[index] || ""}
+              onChange={(e) =>
+                handleAddMemberInputChange(index, e.target.value)
+              }
+              fullWidth
+              margin="normal"
+            />
+          ))}
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{
+              color: "#00A03E",
+              marginRight: 2,
+              marginLeft: "10px",
+              fontWeight: "bold",
+              backgroundColor: "#FFDB58",
+              "&:hover": {
+                backgroundColor: "#FFDB58",
+                color: "#00A03E",
+                borderColor: "#FFDB58",
+              },
+            }}
+            onClick={handleSaveGroupInfo}
+          >
+            Save
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            sx={{
+              color: "#00A03E",
+              marginLeft: "10px",
+              fontWeight: "bold",
+              backgroundColor: "#FFDB58",
+              "&:hover": {
+                backgroundColor: "#FFDB58",
+                color: "#00A03E",
+                borderColor: "#FFDB58",
+              },
+            }}
+            onClick={handleCloseModal}
+          >
+            Cancel
+          </Button>
+        </Paper>
+      </Modal>
+    </div>
   );
 };
 

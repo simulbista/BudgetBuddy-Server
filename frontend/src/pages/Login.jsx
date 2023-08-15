@@ -9,7 +9,6 @@ import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
-import Icon from '@mui/material/Icon';
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
@@ -27,7 +26,7 @@ const Login = () => {
       setIsJustRegistered(true);
       // reset the localStorage variable back to false
       localStorage.setItem("isJustRegistered", "false");
-    }else{
+    } else {
       localIsRegistered = "false";
     }
   });
@@ -61,11 +60,7 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post(
-        `/api/auth`,
-        data,
-        config
-      );
+      const response = await axios.post(`/api/auth`, data, config);
       console.log(response.data);
       localStorage.setItem("token", response.data.token);
       //console.log(decode(response.data.token));
@@ -89,10 +84,9 @@ const Login = () => {
             alignItems: "center",
           }}
         >
-
           <Avatar sx={{ m: 1, bgcolor: "white" }}>
-			  <img src="./vite.svg" alt="Logo" />
-			</Avatar>
+            <img src="./vite.svg" alt="Logo" />
+          </Avatar>
 
           <Typography sx={{ m: 2 }} component="h1" variant="h5">
             Sign In to Budget Buddy
@@ -140,11 +134,7 @@ const Login = () => {
               </Typography>
             )}
             {loginError && (
-              <Typography
-                variant="body2"
-                color="error"
-                align="center"
-              >
+              <Typography variant="body2" color="error" align="center">
                 {loginError}
               </Typography>
             )}
@@ -152,7 +142,7 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2, backgroundColor: '#00A03E' }}
+              sx={{ mt: 3, mb: 2, backgroundColor: "#00A03E" }}
             >
               Sign In
             </Button>
