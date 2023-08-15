@@ -21,13 +21,14 @@ import lombok.NoArgsConstructor;
 public class GroupHistory {
 
 	@MongoId(targetType = FieldType.STRING)
-	// to map POJO ghid of datatype String to _id in mongo collection
-	// had to use ghid instead of ghId since the mapping converts the field to all
+	// to map POJO ghisid of datatype String to _id in mongo collection
+	// had to use ghisid instead of ghisId since the mapping converts the field to all
 	// small case
-	private String ghid;
+	private String ghisid;
 	private String gid;
 	private double groupBudget;
-	private boolean deleteFlag;
+	private Date date;
+	
 	@CreatedDate
 	private Date createdDate;
 	@LastModifiedDate
