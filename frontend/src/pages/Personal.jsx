@@ -165,7 +165,7 @@ const Personal = () => {
 
   return (
     <div className="orders-page">
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom padding="3rem" color="#00A03E">
         Transactions
       </Typography>
       {/* Add the dropdowns for selecting month and year */}
@@ -206,7 +206,7 @@ const Personal = () => {
           </TextField>
         </Grid>
         <Grid item xs={3}>
-          <Box marginTop={2}>
+          <Box margin={1}>
             <Typography variant="h6">Total Income: </Typography>
             <Typography variant="h6" style={{ color: "green" }}>
               {totalIncome}

@@ -83,7 +83,7 @@ const GroupProfile = () => {
 
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom padding="3rem" color="#00A03E">
         Group Profile
       </Typography>
       {groupInfo.groupName && (

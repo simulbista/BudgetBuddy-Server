@@ -158,7 +158,7 @@ const Group = () => {
 
   return (
     <div className="orders-page">
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom padding="3rem" color="#00A03E">
         Transactions
       </Typography>
       {/* Add the dropdowns for selecting month and year */}
