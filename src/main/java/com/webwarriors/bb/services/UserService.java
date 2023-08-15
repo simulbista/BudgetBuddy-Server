@@ -23,8 +23,12 @@ public class UserService {
 
 	// get user info by uid
 	// API end point: GET /api/user/{uid}
-	public Optional<User> getUserByUid(String uid) {
-		return userRepository.findById(uid);
+	public Optional<User> getUserByUid(String uid) throws Exception {
+		Optional<User> foundUser = userRepository.findById(uid);
+		if (!foundUser.isPresent())
+			throw new Exception("The user with id ".concat(uid).concat(" doesn't exist!"));
+
+		return foundUser;
 	}
 
 	// get all users
@@ -82,10 +86,20 @@ public class UserService {
 		User user = userRepository.findById(uid).orElse(null);
 		Group group = groupRepository.findById(gid).orElse(null);
 
+		// to check if the user already belongs to the given group id
+		String gidInUser = userRepository.findById(uid).orElse(null).getGid();
+
+		// ??????????????????? add a new parameter of the user deleting (ghid), if ghid
+		// is of that group, then allow this
+		// and add by matching nickname and email for the uid (input nick and email) -
+		// may be remove uid?
+
 		if (user == null)
 			throw new Exception("User with id " + uid + " doesn't exist!");
 		if (group == null)
 			throw new Exception("Group with id " + gid + " doesn't exist!");
+		if (gidInUser != null)
+			throw new Exception("The user " + uid + " already belongs to the group " + gid + "!");
 
 		// set gid to user (so the user has joined the group)
 		user.setGid(gid);
@@ -101,6 +115,9 @@ public class UserService {
 		// to check if the user actually belongs to the given group id
 		String gidInUser = userRepository.findById(uid).orElse(null).getGid();
 
+		// ??????????????????? add a new parameter of the user deleting (ghid), if ghid
+		// is of that group, then allow this
+
 		if (user == null)
 			throw new Exception("User with id " + uid + " doesn't exist!");
 		if (group == null)
@@ -111,7 +128,7 @@ public class UserService {
 		user.setGid(null);
 		userRepository.save(user);
 	}
-	
+
 	// delete the user (soft delete)
 	// API end point: DELETE /api/user/{uid}
 	public User removeUser(String uid) throws Exception {
@@ -120,13 +137,13 @@ public class UserService {
 
 		if (!optionalUser.isPresent())
 			throw new Exception("User doesn't exist!");
-		
+
 		User user = optionalUser.get();
 		user.setDeleteFlag(true);
-		
-	    // Save the updated user with the deleteFlag set to true
-	    User updatedUser = userRepository.save(user);
-		
+
+		// Save the updated user with the deleteFlag set to true
+		User updatedUser = userRepository.save(user);
+
 		return updatedUser;
 	}
 
