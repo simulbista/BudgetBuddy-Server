@@ -31,6 +31,7 @@ public class Group {
 	@JsonProperty("gName")
 	private String gName;
 	private String ghid;
+	private double defaultBudget;
 	private boolean deleteFlag;
 
 	@CreatedDate
