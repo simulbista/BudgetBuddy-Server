@@ -40,6 +40,7 @@ public class UserService {
 	// get users by gId
 	// API end point: GET /api/user/all/{gid}
 	public Optional<List<User>> getUsersByGid(String gid) {
+		System.out.println(gid);
 		return userRepository.findAllBygid(gid);
 	}
 
@@ -70,14 +71,19 @@ public class UserService {
 		// since when updating the user record, the createdDate in mongo goes to null
 		// we manually set all the fields except for the created Date (which was set
 		// when the user was first created)
-		User updatedUser = foundUser.get();
-		updatedUser.setNickName(updatedUser.getNickName());
-		updatedUser.setEmail(updatedUser.getEmail());
-		updatedUser.setPassword(updatedUser.getPassword());
-		updatedUser.setRole(updatedUser.getRole());
-		updatedUser.setGid(updatedUser.getGid());
-		updatedUser.setUpdatedAt(new Date(System.currentTimeMillis()));
-		return userRepository.save(updatedUser);
+		User existingUser = foundUser.get();
+		if(user.getNickName()!=null)
+			existingUser.setNickName(user.getNickName());
+		if(user.getEmail()!=null)
+			existingUser.setEmail(user.getEmail());
+		if(user.getPassword()!=null)
+			existingUser.setPassword(user.getPassword());
+		if(user.getRole()!=null)
+			existingUser.setRole(user.getRole());
+		if(user.getGid()!=null)
+			existingUser.setGid(user.getGid());
+		existingUser.setUpdatedAt(new Date(System.currentTimeMillis()));
+		return userRepository.save(existingUser);
 	}
 
 	// add the user to a group
