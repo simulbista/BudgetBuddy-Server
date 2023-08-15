@@ -72,40 +72,51 @@ public class UserService {
 		// we manually set all the fields except for the created Date (which was set
 		// when the user was first created)
 		User existingUser = foundUser.get();
-		if(user.getNickName()!=null)
+		if (user.getNickName() != null)
 			existingUser.setNickName(user.getNickName());
-		if(user.getEmail()!=null)
+		if (user.getEmail() != null)
 			existingUser.setEmail(user.getEmail());
-		if(user.getPassword()!=null)
+		if (user.getPassword() != null)
 			existingUser.setPassword(user.getPassword());
-		if(user.getRole()!=null)
+		if (user.getRole() != null)
 			existingUser.setRole(user.getRole());
-		if(user.getGid()!=null)
+		if (user.getGid() != null)
 			existingUser.setGid(user.getGid());
 		existingUser.setUpdatedAt(new Date(System.currentTimeMillis()));
 		return userRepository.save(existingUser);
 	}
 
 	// add the user to a group
-	// API end point: POST /api/user/{uid}/addgroup/{gid}
-	public User addUserToGroup(String uid, String gid) throws Exception {
+	// API end point: PUT /api/user/{uid}/addgroup/{gid}
+	// request body should contain a list of nickname and email (mind the order) as
+	// a list
+	// ["sim", "sb@gmail.com"]
+	public User addUserToGroup(String uid, String gid, List<String> loginDetail) throws Exception {
+		String inputNickName = loginDetail.get(0);
+		String inputEmail = loginDetail.get(1);
+
 		User user = userRepository.findById(uid).orElse(null);
 		Group group = groupRepository.findById(gid).orElse(null);
 
-		// to check if the user already belongs to the given group id
-		String gidInUser = userRepository.findById(uid).orElse(null).getGid();
-
-		// ??????????????????? add a new parameter of the user deleting (ghid), if ghid
-		// is of that group, then allow this
-		// and add by matching nickname and email for the uid (input nick and email) -
-		// may be remove uid?
-
+		// check1: if user exists
 		if (user == null)
 			throw new Exception("User with id " + uid + " doesn't exist!");
+		// check1: if group exists
 		if (group == null)
 			throw new Exception("Group with id " + gid + " doesn't exist!");
-		if (gidInUser != null)
-			throw new Exception("The user " + uid + " already belongs to the group " + gid + "!");
+		// check3: if user is the group head of the group (only group head can add)
+		if (!group.getGhid().equals(uid))
+			throw new Exception("Unauthorized Access! User with id " + uid
+					+ " is not the admin of the group".concat(gid).concat(".No add permission!"));
+		// check4: if the email and nickname coming from the request body as loginDetail
+		// belong to the same user (user validation)
+		User userByNickName = userRepository.findByNickName(inputNickName);
+		User userByEmail = userRepository.findByEmail(inputEmail);
+		if (userByNickName == null || userByEmail == null)
+			throw new Exception("User Validation failed! The user email or nick name doesn't exist!");
+		if (!userByNickName.getUid().equals(userByEmail.getUid()))
+			throw new Exception(
+					"User Validation failed! The user email and nick name in the request body don't belong to the same user.");
 
 		// set gid to user (so the user has joined the group)
 		user.setGid(gid);
@@ -118,18 +129,17 @@ public class UserService {
 		User user = userRepository.findById(uid).orElse(null);
 		// to check if the group id actually exists in group collection
 		Group group = groupRepository.findById(gid).orElse(null);
-		// to check if the user actually belongs to the given group id
-		String gidInUser = userRepository.findById(uid).orElse(null).getGid();
 
-		// ??????????????????? add a new parameter of the user deleting (ghid), if ghid
-		// is of that group, then allow this
-
+		// check1: if user exists
 		if (user == null)
 			throw new Exception("User with id " + uid + " doesn't exist!");
+		// check1: if group exists
 		if (group == null)
 			throw new Exception("Group with id " + gid + " doesn't exist!");
-		if (gidInUser == null)
-			throw new Exception("The user " + uid + " doesn't belong to the group " + gid + "!");
+		// check3: if user is the group head of the group (only group head can delete)
+		if (!group.getGhid().equals(uid))
+			throw new Exception("Unauthorized Access! User with id " + uid
+					+ " is not the head of the group".concat(gid).concat(".No delete permission!"));
 
 		user.setGid(null);
 		userRepository.save(user);
