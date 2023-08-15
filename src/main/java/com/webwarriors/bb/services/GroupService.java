@@ -29,7 +29,8 @@ public class GroupService {
 			throw new Exception("Group already exists! Please try a different group name.");
 
 		// check2:cannot create group with non existent user
-		boolean isUserExist = userRepository.findById(uid).isPresent();
+		Optional<User> optionalExistingUser = userRepository.findById(uid);
+		boolean isUserExist = optionalExistingUser.isPresent();
 		if (!isUserExist)
 			throw new Exception("User ".concat(uid).concat(" doesn't exist!"));
 
@@ -44,7 +45,15 @@ public class GroupService {
 		// save the uid of the user creating group as the ghid (the one creating the
 		// group becomes the group head)
 		group.setGhid(uid);
-		return groupRepository.save(group);
+		
+		Group createdGroup = groupRepository.save(group);
+		
+		//also save this gid(that just got created) in the user record (since the user is a member of the group now)
+		User toBeSavedUser = optionalExistingUser.get();
+		toBeSavedUser.setGid(createdGroup.getGid());
+		userRepository.save(toBeSavedUser);
+		
+		return createdGroup;
 	}
 
 	// get group info gid by uid (only members in the group can get the info)
@@ -62,7 +71,7 @@ public class GroupService {
 			throw new Exception("The user with id ".concat(uid).concat(" doesn't exist!"));
 
 		// check3: if the user is a member of the group or not
-		// by matching checking if the gid of the user (with uid) matches the input gid
+		// by checking if the gid of the user (with uid) matches the input gid
 		boolean isMember = userRepository.findById(uid).get().getGid().equals(gid);
 		if (!isMember)
 			throw new Exception("Unauthorized access. The user ".concat(uid).concat(" is not the member of the group ")
@@ -92,7 +101,7 @@ public class GroupService {
 
 		// Retrieve the existing group data
 		Group existingGroup = foundGroup.get();
-		// Copy the new data(just the ngroup name) to the existing group object,
+		// Copy the new data(just the group name) to the existing group object,
 		// preserving other fields such as createdDate and ghid
 		// if this is not done, both the fields get overwritten to null (gets replaced)
 		existingGroup.setGName(group.getGName());
@@ -107,8 +116,9 @@ public class GroupService {
 		if (!optionalFoundGroup.isPresent())
 			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
 		
-		//check2: if the group has not been deleted (deleteFlag=true)
-		if(optionalFoundGroup.get().isDeleteFlag()) throw new Exception("The group with id ".concat(gid).concat(" has been deleted already!"));
+		// check2: if the group has not been deleted (deleteFlag=true)
+		if (optionalFoundGroup.get().isDeleteFlag())
+			throw new Exception("The group with id ".concat(gid).concat(" has been deleted already!"));
 
 		Group foundGroup = optionalFoundGroup.get();
 		

@@ -11,7 +11,7 @@ import com.webwarriors.bb.models.User;
 @Repository
 public interface UserRepository extends MongoRepository<User, String> {
 
-	Optional<List<User>> findAllBygid(String gId);
+	Optional<List<User>> findAllBygid(String gid);
 
 	User findByEmail(String email);
 

@@ -83,13 +83,17 @@ public class UserController {
 	}
 
 	// add the user to a group
-	// API end point: POST /api/user/{uid}/addgroup/{gid}
+	// API end point: PUT /api/user/{uid}/addgroup/{gid}
+	// request body should contain a list of nickname and email (mind the order) as
+	// a list
+	// ["sim", "sb@gmail.com"]
 	@PutMapping("/{uid}/addgroup/{gid}")
-	public ResponseEntity<String> addUserToGroup(@PathVariable String uid, @PathVariable String gid) {
+	public ResponseEntity<String> addUserToGroup(@PathVariable String uid, @PathVariable String gid,
+			@RequestBody List<String> loginDetail) {
 		String message;
 		try {
 			message = "User with id ".concat(uid).concat(" has been added to the group ".concat(gid).concat("."));
-			userService.addUserToGroup(uid, gid);
+			userService.addUserToGroup(uid, gid, loginDetail);
 			return new ResponseEntity<String>(message, HttpStatus.CREATED);
 		} catch (Exception e) {
 			message = "Error updating user: " + e.getMessage();
