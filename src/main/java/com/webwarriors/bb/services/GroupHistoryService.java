@@ -70,8 +70,11 @@ public class GroupHistoryService {
 
 		// returns all the group history records for that month - sorted latest first
 		List<GroupHistory> existingGroupHistory = groupHistoryRepository.findByGidAndMonth(gid, monthInNumber);
+		
+		//if existingGroupHistory is empty (meaning there are no group history records)
+		//which means we can use the defaulBudget value from Group
 		if (existingGroupHistory.isEmpty()) {
-			return 0.0;
+			return groupRepository.findById(gid).get().getDefaultBudget();
 		}
 
 		// get the latest record which is on the 0 index

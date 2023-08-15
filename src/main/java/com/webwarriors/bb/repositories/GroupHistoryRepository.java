@@ -16,6 +16,4 @@ public interface GroupHistoryRepository extends MongoRepository<GroupHistory, St
 	@Query(value = "{ 'gid': ?0, $expr: { $eq: [ { $month: '$date' }, ?1 ] } }", sort = "{ 'date': -1 }")
 	List<GroupHistory> findByGidAndMonth(String gid, int month);
 
-	GroupHistory findByGid(String gid);
-
 }
