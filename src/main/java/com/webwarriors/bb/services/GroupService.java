@@ -121,17 +121,18 @@ public class GroupService {
 		String resultghid = foundGroup.get().getGhid();
 		String resultgid = foundGroup.get().getGid();
 
-		//creating the following data structure (nickname and email pair) to be returned
-		//resultMemberNickAndEmail = ["sim:sb@gmail.com","pal:pb@gmail.com"]
+		// creating the following data structure (nickname and email pair) to be
+		// returned
+		// resultMemberNickAndEmail = ["sim:sb@gmail.com","pal:pb@gmail.com"]
 		List<User> members = userRepository.findAllBygid(gid).get();
-		String eachMemberNick,eachMemberEmail;
+		String eachMemberNick, eachMemberEmail;
 		List<String> resultMemberNickAndEmail = new ArrayList<>();
 		for (User eachMemberUser : members) {
 			eachMemberNick = eachMemberUser.getNickName();
 			eachMemberEmail = eachMemberUser.getEmail();
 			resultMemberNickAndEmail.add(eachMemberNick.concat(":").concat(eachMemberEmail));
 		}
-		
+
 //		storing rest of the required fields other than nickname and email pair and returning it back
 
 		Map<String, Object> searchedGroup = new HashMap<>();
@@ -152,7 +153,7 @@ public class GroupService {
 //		 gName: "Code Crafters",
 //		 listofUserInfo: ["pal:pb@gmail.com","sim:sim@gmail.com"]
 //	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	public Group updateGroup(String uid, String gid, String gName, List<String> listOfUserInfo) throws Exception {
 
@@ -160,13 +161,13 @@ public class GroupService {
 		User toBeAddedUser;
 		Optional<Group> foundGroup = groupRepository.findById(gid);
 		List<User> existingMembersOfTheGroup = userRepository.findAllBygid(gid).get();
-		
-		//removing all the existing members from the group
-		//because we are using the new list (from request body) as the only members in the group
+
+		// removing all the existing members from the group
+		// because we are using the new list (from request body) as the only members in
+		// the group
 		for (User existingMember : existingMembersOfTheGroup) {
 			existingMember.setGid(null);
 		}
-		
 
 		// check1: if the group exists
 		if (!foundGroup.isPresent())
@@ -191,7 +192,6 @@ public class GroupService {
 		// if this is not done, both the fields get overwritten to null (gets replaced)
 		existingGroup.setGName(gName);
 
-
 		// saving the input users first
 		for (String userInfo : listOfUserInfo) {
 			String[] splitUserInfo = userInfo.split(":");
@@ -205,7 +205,7 @@ public class GroupService {
 
 			// set gid to user (so the user has joined the group)
 			toBeAddedUser = userRepository.findByEmail(inputEmail);
-			// if one of the users is already in the group, dont add it to the group(skip) 
+			// if one of the users is already in the group, dont add it to the group(skip)
 			// move to the next user( iteration in the loop)
 			if (toBeAddedUser.getGid() != null)
 				continue;
@@ -255,6 +255,31 @@ public class GroupService {
 		foundGroup.setDeleteFlag(true);
 		return groupRepository.save(foundGroup);
 
+	}
+
+	// check if the user is the group head
+	// API end point: GET /api/group/{gid}/ishead/{uid}
+	// return true if group head else false
+	public boolean isGroupHead(String uid, String gid) throws Exception {
+		boolean groupHeadFlag = true;
+		// check1: if the group exists
+		Optional<Group> optionalFoundGroup = groupRepository.findById(gid);
+		if (!optionalFoundGroup.isPresent())
+			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
+
+		// check2: if the user exists
+		Optional<User> foundUser = userRepository.findById(uid);
+		if (!foundUser.isPresent())
+			throw new Exception("The user with id ".concat(uid).concat(" doesn't exist!"));
+
+		// if the uid is not the ghid of the group gid, that means the user is not the
+		// group head
+		// so set the flag to false
+		if (!uid.equals(optionalFoundGroup.get().getGhid())) {
+			groupHeadFlag = false;
+		}
+
+		return groupHeadFlag;
 	}
 
 	// helper method to validate user before adding them to the group
