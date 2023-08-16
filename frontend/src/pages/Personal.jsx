@@ -20,33 +20,40 @@ import {
 } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import { convertTimestampToDate } from "../utils/dateUtils";
 
 const Personal = () => {
   const initialData = [
     {
-      name: "Salary",
-      date: "2023-08-15",
-      isIncome: true,
-      amount: 5000,
-      tid: 1,
-    },
-    {
-      name: "Groceries",
-      date: "2023-08-14",
-      isIncome: false,
-      amount: 150,
-      tid: 2,
+      category: null,
+      createdDate: "2023-08-15T03:24:43.548+00:00",
+      deleteFlag: false,
+      expense: 0,
+      gid: null,
+      income: 250,
+      tid: "64daeffb7f309e5545a4bb9f",
+      transactionDate: "2023-08-14T16:39:04.194+00:00",
+      uid: "64da7aad842aef0aefe836b6",
+      updatedAt: "2023-08-15T03:24:43.548+00:00",
     },
   ];
-  const [transactions, setTransactions] = useState(initialData);
+  const [transactions, setTransactions] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Default to current month
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Default to current year
 
+  const uid = "64da7aad842aef0aefe836b6";
+
   const handleEditClick = (row) => {
-    setSelectedRow(row);
+    setSelectedRow({
+      name: row.category,
+      date: convertTimestampToDate(row.transactionDate),
+      isIncome: row.expense == 0,
+      amount: row.expense == 0 ? row.income : row.expense,
+      tid: row.tid
+    });
     setOpenModal(true);
   };
 
@@ -56,6 +63,7 @@ const Personal = () => {
   };
 
   const handleFieldChange = (field, value) => {
+
     setSelectedRow((prevRow) => ({
       ...prevRow,
       [field]: field === "isIncome" ? !prevRow.isIncome : value,
@@ -67,74 +75,102 @@ const Personal = () => {
     setSelectedRow({
       name: "",
       date: "",
-      isIncome: true,
-      amount: "",
+      isIncome: false,
+      amount: ""
     });
   };
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    // Filter transactions based on selectedMonth and selectedYear
-    const filteredTransactions = initialData.filter((transaction) => {
-      const transactionDate = new Date(transaction.date);
-      return (
-        transactionDate.getMonth() + 1 === selectedMonth &&
-        transactionDate.getFullYear() === selectedYear
-      );
-    });
-    setTransactions(filteredTransactions);
+    fetchTransactions(); // Initial fetching of transactions
   }, [selectedMonth, selectedYear]);
 
-  useEffect(() => {
-    // const fetchTransactions = async () => {
-    //   try {
-    //     // Make a GET request to fetch the expenses from the API endpoint
-    //     const response = await axios.get(`./api/transactions`, {
-    //       headers: {
-    //         Authorization: token,
-    //       },
-    //     });
-    //      Set the retrieved expenses data to the component state
-    //     setTransactions(response.data);
-    //   } catch (error) {
-    //     console.error("Error fetching transactions:", error);
-    //   }
-    // };
-    // fetchTransactions();
-  }, []);
+  const fetchTransactions = async () => {
+    try {
+      // Make a GET request to fetch the expenses from the API endpoint
+      const selectedMonthStr = new Date(0, selectedMonth - 1).toLocaleString(
+        "default",
+        {
+          month: "long",
+        }
+      );
+      const response = await axios.get(
+        `./api/transaction/month/${selectedMonthStr}/by/${uid}`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+      //Set the retrieved expenses data to the component state
+      setTransactions(response.data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
 
   const handleDeleteRow = async (transactionId) => {
     try {
       // Make a DELETE request to the remove transaction API endpoint
-      // await axios.delete(`/api/transactions/${transactionId}`, {
-      //   headers: {
-      //     Authorization: token,
-      //   },
-      // });
-
+      await axios.delete(`/api/transaction/${transactionId}/by/${uid}`, {
+        headers: {
+          Authorization: token,
+        },
+      });
+      fetchTransactions();
       // Remove the deleted transaction from the local transaction state
-      setTransactions((prevTransactions) =>
-        prevTransactions.filter(
-          (transaction) => transaction.tid !== transactionId
-        )
-      );
+      // setTransactions((prevTransactions) =>
+      //   prevTransactions.filter(
+      //     (transaction) => transaction.tid !== transactionId
+      //   )
+      // );
       setSnackbarOpen(true);
     } catch (error) {
       console.error("Error deleting transaction:", error);
     }
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (selectedRow) {
       if (selectedRow.tid !== undefined) {
-        // Editing existing row
-        const newData = transactions.map((row) =>
-          row.tid === selectedRow.tid ? selectedRow : row
-        );
-        setTransactions(newData);
+        try {
+          // Make a PUT request to the add transaction API endpoint
+          const transcationData = {
+            tid: selectedRow.tid,
+            category: selectedRow.name,
+            expense: selectedRow.isIncome ? 0 : selectedRow.amount,
+            income: selectedRow.isIncome ? selectedRow.amount : 0,
+            transactionDate: selectedRow.date,
+          };
+          await axios.put(`/api/transaction/${uid}`, transcationData, {
+            headers: {
+              Authorization: token,
+            },
+          });
+          fetchTransactions();
+          setSnackbarOpen(true);
+        } catch (error) {
+          console.error("Error updating transaction:", error);
+        }
       } else {
-        // Adding new row
-        setTransactions([...transactions, selectedRow]);
+        try {
+          // Make a POST request to the add transaction API endpoint
+          const transcationData = {
+            category: selectedRow.name,
+            expense: selectedRow.isIncome ? 0 : selectedRow.amount,
+            income: selectedRow.isIncome ? selectedRow.amount : 0,
+            transactionDate: selectedRow.date,
+          };
+          await axios.post(`/api/transaction/${uid}`, transcationData, {
+            headers: {
+              Authorization: token,
+            },
+          });
+          fetchTransactions();
+          setSnackbarOpen(true);
+        } catch (error) {
+          console.error("Error creating transaction:", error);
+        }
       }
     }
     handleModalClose();
@@ -142,12 +178,12 @@ const Personal = () => {
 
   // Calculate TotalIncome, TotalExpense, and Total
   const totalIncome = transactions
-    .filter((transaction) => transaction.isIncome)
-    .reduce((sum, transaction) => sum + parseFloat(transaction.amount), 0);
+    .filter((transaction) => transaction.expense == 0)
+    .reduce((sum, transaction) => sum + parseFloat(transaction.income), 0);
 
   const totalExpense = transactions
-    .filter((transaction) => !transaction.isIncome)
-    .reduce((sum, transaction) => sum + parseFloat(transaction.amount), 0);
+    .filter((transaction) => transaction.income == 0)
+    .reduce((sum, transaction) => sum + parseFloat(transaction.expense), 0);
 
   const total = totalIncome - totalExpense;
 
@@ -240,8 +276,8 @@ const Personal = () => {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{backgroundColor:"lightgoldenrodyellow"}}>
-                <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+              <TableRow sx={{ backgroundColor: "lightgoldenrodyellow" }}>
+                <TableCell sx={{ fontWeight: "bold" }}>Category</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Amount</TableCell>
@@ -249,14 +285,20 @@ const Personal = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {transactions.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell>{row.date}</TableCell>
-                  <TableCell style={{ color: row.isIncome ? "green" : "red" }}>
-                    {row.isIncome ? "Income" : "Expense"}
+              {transactions.map((row) => (
+                <TableRow key={row.tid}>
+                  <TableCell>{row.category}</TableCell>
+                  <TableCell>
+                    {convertTimestampToDate(row.transactionDate)}
                   </TableCell>
-                  <TableCell>{row.amount}</TableCell>
+                  <TableCell
+                    style={{ color: row.expense == 0 ? "green" : "red" }}
+                  >
+                    {row.expense == 0 ? "Income" : "Expense"}
+                  </TableCell>
+                  <TableCell>
+                    {row.expense == 0 ? row.income : row.expense}
+                  </TableCell>
                   <TableCell>
                     <Button
                       sx={{
@@ -284,7 +326,7 @@ const Personal = () => {
                           color: "#00A03E",
                         },
                       }}
-                      onClick={() => handleDeleteRow(index)}
+                      onClick={() => handleDeleteRow(row.tid)}
                     >
                       Delete
                     </Button>
@@ -330,7 +372,7 @@ const Personal = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField
-                          label="Name"
+                          label="Category"
                           value={selectedRow.name}
                           onChange={(e) =>
                             handleFieldChange("name", e.target.value)
@@ -356,7 +398,9 @@ const Personal = () => {
                           <FormControlLabel
                             control={
                               <Switch
-                                checked={selectedRow.isIncome}
+                                checked={
+                                  selectedRow.isIncome
+                                }
                                 onChange={(e) =>
                                   handleFieldChange("isIncome", e.target.value)
                                 }
@@ -373,7 +417,9 @@ const Personal = () => {
                         <TextField
                           label="Amount"
                           type="number"
-                          value={selectedRow.amount}
+                          value={
+                            selectedRow.amount
+                          }
                           onChange={(e) =>
                             handleFieldChange("amount", e.target.value)
                           }
