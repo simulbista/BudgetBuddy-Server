@@ -23,20 +23,20 @@ import Alert from "@mui/material/Alert";
 import { convertTimestampToDate } from "../utils/dateUtils";
 
 const Personal = () => {
-  const initialData = [
-    {
-      category: null,
-      createdDate: "2023-08-15T03:24:43.548+00:00",
-      deleteFlag: false,
-      expense: 0,
-      gid: null,
-      income: 250,
-      tid: "64daeffb7f309e5545a4bb9f",
-      transactionDate: "2023-08-14T16:39:04.194+00:00",
-      uid: "64da7aad842aef0aefe836b6",
-      updatedAt: "2023-08-15T03:24:43.548+00:00",
-    },
-  ];
+  // const initialData = [
+  //   {
+  //     category: null,
+  //     createdDate: "2023-08-15T03:24:43.548+00:00",
+  //     deleteFlag: false,
+  //     expense: 0,
+  //     gid: null,
+  //     income: 250,
+  //     tid: "64daeffb7f309e5545a4bb9f",
+  //     transactionDate: "2023-08-14T16:39:04.194+00:00",
+  //     uid: "64dc57cf7214f15e7d70edcd",
+  //     updatedAt: "2023-08-15T03:24:43.548+00:00",
+  //   },
+  // ];
   const [transactions, setTransactions] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -44,7 +44,7 @@ const Personal = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Default to current month
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Default to current year
 
-  const uid = "64da7aad842aef0aefe836b6";
+  const uid = "64dc57cf7214f15e7d70edcd";
 
   const handleEditClick = (row) => {
     setSelectedRow({
@@ -52,7 +52,7 @@ const Personal = () => {
       date: convertTimestampToDate(row.transactionDate),
       isIncome: row.expense == 0,
       amount: row.expense == 0 ? row.income : row.expense,
-      tid: row.tid
+      tid: row.tid,
     });
     setOpenModal(true);
   };
@@ -63,7 +63,6 @@ const Personal = () => {
   };
 
   const handleFieldChange = (field, value) => {
-
     setSelectedRow((prevRow) => ({
       ...prevRow,
       [field]: field === "isIncome" ? !prevRow.isIncome : value,
@@ -76,7 +75,7 @@ const Personal = () => {
       name: "",
       date: "",
       isIncome: false,
-      amount: ""
+      amount: "",
     });
   };
   const token = localStorage.getItem("token");
@@ -206,7 +205,7 @@ const Personal = () => {
       </Typography>
       {/* Add the dropdowns for selecting month and year */}
 
-      <Grid container marginTop={2}>
+      <Grid container marginTop={2} marginBottom={2}>
         <Grid item>
           <TextField
             select
@@ -398,9 +397,7 @@ const Personal = () => {
                           <FormControlLabel
                             control={
                               <Switch
-                                checked={
-                                  selectedRow.isIncome
-                                }
+                                checked={selectedRow.isIncome}
                                 onChange={(e) =>
                                   handleFieldChange("isIncome", e.target.value)
                                 }
@@ -417,9 +414,7 @@ const Personal = () => {
                         <TextField
                           label="Amount"
                           type="number"
-                          value={
-                            selectedRow.amount
-                          }
+                          value={selectedRow.amount}
                           onChange={(e) =>
                             handleFieldChange("amount", e.target.value)
                           }
