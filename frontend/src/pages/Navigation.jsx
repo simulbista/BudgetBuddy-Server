@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-
+import axios from "axios";
 // mui imports
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -20,10 +20,21 @@ const StyledNavLink = styled(NavLink)`
 const Navigation = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Perform logout logic and remove the token from local storage
-    localStorage.removeItem("token");
-    navigate("/login");
+    try {
+      console.log("hello from logout");
+      const response = await axios.post(`/api/logout`);
+      // console.log(response.data);
+      // localStorage.setItem("token", response.data.token);
+      //console.log(decode(response.data.token));
+      // localStorage.removeItem("token");
+      localStorage.clear();
+      navigate("/login");
+    } catch (e) {
+      console.log(e);
+    }
+    
   };
 
   return (

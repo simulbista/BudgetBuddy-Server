@@ -9,7 +9,7 @@ const UserProfile = () => {
     role: "",
   });
 
-  const uid = "64dc57cf7214f15e7d70edcd";
+  const uid = localStorage.getItem("uid");
 
   useEffect(() => {
     const fetchUserInfo = async () => {

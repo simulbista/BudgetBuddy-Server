@@ -9,8 +9,7 @@ import Group from "./pages/Group";
 import GroupProfile from "./pages/GroupProfile";
 import UserProfile from "./pages/UserProfile";
 
-// const isLoggedIn = !!localStorage.getItem("token");
-const isLoggedIn = true;
+const isLoggedIn = !!localStorage.getItem("uid");
 const router = createBrowserRouter([
   {
     path: "/",

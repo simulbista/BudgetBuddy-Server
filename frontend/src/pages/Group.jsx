@@ -50,8 +50,8 @@ const Group = () => {
   const [isBudgetEditing, setIsBudgetEditing] = useState(false);
   const [editableBudget, setEditableBudget] = useState(0);
 
-  const uid = "64dc57cf7214f15e7d70edcd";
-  const gid = "64dbc09b64142a3594918f5d";
+  const uid = localStorage.getItem("uid");
+  const gid = localStorage.getItem("gid");
 
   const handleEditBudgetClick = () => {
     setIsBudgetEditing(true);
@@ -149,7 +149,7 @@ const Group = () => {
       amount: 0,
     });
   };
-  const token = localStorage.getItem("token");
+ 
 
   useEffect(() => {
     fetchTransactions(); // Initial fetching of transactions
@@ -168,7 +168,7 @@ const Group = () => {
         `./api/transaction/month/${selectedMonthStr}/by/group/${gid}/by/${uid}`,
         {
           headers: {
-            Authorization: token,
+          //  Authorization: token,
           },
         }
       );
@@ -184,7 +184,7 @@ const Group = () => {
       // Make a DELETE request to the remove transaction API endpoint
       await axios.delete(`/api/transaction/${transactionId}/by/${uid}`, {
         headers: {
-          Authorization: token,
+          //Authorization: token,
         },
       });
       fetchTransactions();
@@ -213,7 +213,7 @@ const Group = () => {
           };
           await axios.put(`/api/transaction/${uid}`, transcationData, {
             headers: {
-              Authorization: token,
+            //  Authorization: token,
             },
           });
           fetchTransactions();
@@ -233,7 +233,7 @@ const Group = () => {
           };
           await axios.post(`/api/transaction/${uid}`, transcationData, {
             headers: {
-              Authorization: token,
+             // Authorization: token,
             },
           });
           fetchTransactions();
@@ -413,7 +413,7 @@ const Group = () => {
         </TableContainer>
       )}
 
-      <Button
+      { gid != 'null' && <Button
         onClick={handleAddNewItem}
         sx={{
           color: "#00A03E",
@@ -429,7 +429,7 @@ const Group = () => {
         }}
       >
         + New
-      </Button>
+      </Button>}
 
       <Button
         variant="outlined"
