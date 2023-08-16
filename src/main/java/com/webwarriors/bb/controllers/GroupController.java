@@ -37,12 +37,20 @@ public class GroupController {
 			@RequestBody Map<String, Object> gNameWithMembers) {
 		// destructuring groupName and members
 		String gName = (String) gNameWithMembers.get("gName");
-		double defaultBudget;
-		if ((Double) gNameWithMembers.get("defaultBudget") != null) {
-			defaultBudget = (Double) gNameWithMembers.get("defaultBudget");
-		} else {
-			// default budget is 0 when not provided
-			defaultBudget = 0;
+
+		// converting input default budget datatype from integer(if so) to double
+		Double inputDefaultBudget = 0.0;
+		Object rawDefaultBudget = gNameWithMembers.get("defaultBudget");
+		if (rawDefaultBudget != null) {
+			if (rawDefaultBudget instanceof Number) {
+				inputDefaultBudget = ((Number) rawDefaultBudget).doubleValue();
+			}
+		}
+
+		// default budget is 0.0 when not provided
+		double defaultBudget = 0.0;
+		if (inputDefaultBudget != null) {
+			defaultBudget = inputDefaultBudget;
 		}
 
 		@SuppressWarnings("unchecked")
