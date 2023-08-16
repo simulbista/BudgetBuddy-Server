@@ -1,6 +1,9 @@
 package com.webwarriors.bb.services;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,23 +48,24 @@ public class GroupService {
 		// save the uid of the user creating group as the ghid (the one creating the
 		// group becomes the group head)
 		group.setGhid(uid);
-		
+
 		Group createdGroup = groupRepository.save(group);
-		
-		//also save this gid(that just got created) in the user record (since the user is a member of the group now)
+
+		// also save this gid(that just got created) in the user record (since the user
+		// is a member of the group now)
 		User toBeSavedUser = optionalExistingUser.get();
 		toBeSavedUser.setGid(createdGroup.getGid());
 		userRepository.save(toBeSavedUser);
-		
+
 		return createdGroup;
 	}
 
 	// get group info gid by uid (only members in the group can get the info)
 	// API end point: GET /api/group/{gid}/by/{uid}
-	public Optional<Group> getGroupInfo(String gid, String uid) throws Exception {
+	public Map<String, Object> getGroupInfo(String gid, String uid) throws Exception {
 
 		// check1: if the group exists
-		Optional<Group> foundGroup = groupRepository.findById(gid);
+		Optional<Group> foundGroup = groupRepository.findByIdAndUndeleted(gid);
 		if (!foundGroup.isPresent())
 			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
 
@@ -76,7 +80,28 @@ public class GroupService {
 		if (!isMember)
 			throw new Exception("Unauthorized access. The user ".concat(uid).concat(" is not the member of the group ")
 					.concat(gid).concat(" !"));
-		return foundGroup;
+
+		double resultGroupBudget = foundGroup.get().getDefaultBudget();
+		String resultGroupName = foundGroup.get().getGName();
+		String resultghid = foundGroup.get().getGhid();
+		String resultgid = foundGroup.get().getGid();
+
+		Optional<List<User>> optionalMembers = userRepository.findAllBygid(gid);
+		String eachMember;
+		List<String> resultMemberEmails = new ArrayList<>();
+		for (User eachMemberUser : optionalMembers.get()) {
+			eachMember = eachMemberUser.getEmail();
+			resultMemberEmails.add(eachMember);
+		}
+
+	    Map<String, Object> searchedGroup = new HashMap<>();
+	    searchedGroup.put("defaultBudget", resultGroupBudget);
+	    searchedGroup.put("gName", resultGroupName);
+	    searchedGroup.put("ghid", resultghid);
+	    searchedGroup.put("gid", resultgid);
+	    searchedGroup.put("members", resultMemberEmails);
+	    
+		return searchedGroup;
 	}
 
 	// update group
@@ -94,7 +119,8 @@ public class GroupService {
 			throw new Exception("The user with id ".concat(uid).concat(" doesn't exist!"));
 
 		// check3: if the user is the group head
-		// if uid = ghid(group head) of the group,, only group head can update the group info
+		// if uid = ghid(group head) of the group,, only group head can update the group
+		// info
 		if (!uid.equals(foundGroup.get().getGhid()))
 			throw new Exception("Only group heads are allowed to update the group. User ".concat(uid)
 					.concat(" is not the head of the group ").concat(group.getGid().concat(" .")));
@@ -115,15 +141,15 @@ public class GroupService {
 		Optional<Group> optionalFoundGroup = groupRepository.findById(gid);
 		if (!optionalFoundGroup.isPresent())
 			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
-		
+
 		// check2: if the group has not been deleted (deleteFlag=true)
 		if (optionalFoundGroup.get().isDeleteFlag())
 			throw new Exception("The group with id ".concat(gid).concat(" has been deleted already!"));
 
 		Group foundGroup = optionalFoundGroup.get();
-		
+
 		// check3: if the user is the group head
-		//if uid = ghid that group, only group head can delete the group info
+		// if uid = ghid that group, only group head can delete the group info
 		if (!uid.equals(foundGroup.getGhid()))
 			throw new Exception("Only group heads are allowed to update the group. User ".concat(uid)
 					.concat(" is not the head of the group ").concat(gid).concat(" ."));

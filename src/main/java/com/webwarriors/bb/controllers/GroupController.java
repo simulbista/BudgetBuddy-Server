@@ -1,5 +1,6 @@
 package com.webwarriors.bb.controllers;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class GroupController {
 	// get group info gid by uid (only members in the group can get the info)
 	// API end point: GET /api/group/{gid}/by/{uid}
 	@GetMapping("/{gid}/by/{uid}")
-	public Optional<Group> getGroupInfo(@PathVariable String gid, @PathVariable String uid) throws Exception {
+	public Map<String, Object> getGroupInfo(@PathVariable String gid, @PathVariable String uid) throws Exception {
 		return groupService.getGroupInfo(gid, uid);
 	}
 
