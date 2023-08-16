@@ -98,7 +98,13 @@ public class TransactionService {
 		
 		//set the latest group budget for the month to the income field (so that it can be displayed back in the frontend)
 		for(Transaction eachtransaction : foundTransaction) {
-			eachtransaction.setIncome(ghService.getLatestMonthlyGroupBudget(gid,uid, month));
+			//if group history doesnt have any records, so there wont be any budget
+			//then we set the defaultbudget as the income to all the members of the group
+			if(ghService.getLatestMonthlyGroupBudget(gid,uid, month)==0.0) {
+				eachtransaction.setIncome(foundGroup.get().getDefaultBudget());
+			}else {
+				eachtransaction.setIncome(ghService.getLatestMonthlyGroupBudget(gid,uid, month));
+			}
 		}
 		return foundTransaction;
 	}
