@@ -58,19 +58,60 @@ const Group = () => {
     setEditableBudget(transactions[0].income);
   };
 
+  // const getTodayOfSelectedMonth = () => {
+  //   // Get the current date
+  //   const currentDate = new Date();
+
+  //   // Set the year and month to the selected values
+  //   currentDate.setFullYear(selectedYear);
+  //   currentDate.setMonth(selectedMonth - 1);
+
+  //   // Get the timestamp of the updated date
+  //   const timestamp = currentDate.getTime();
+
+  //   return timestamp;
+  // };
+
+  const getTodayOfSelectedMonth = () => {
+    // Get the current date and time
+    const currentDate = new Date();
+  
+    // Set the year and month to the selected values
+    currentDate.setFullYear(selectedYear);
+    currentDate.setMonth(selectedMonth - 1);
+  
+    // Get the day, month, and year components
+    const day = currentDate.getDate().toString().padStart(2, '0');
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = currentDate.getFullYear().toString();
+  
+    // Get the time components
+    const hours = currentDate.getHours().toString().padStart(2, '0');
+    const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+    const seconds = currentDate.getSeconds().toString().padStart(2, '0');
+    const milliseconds = currentDate.getMilliseconds().toString().padStart(3, '0');
+  
+    // Combine components to create the formatted date and time
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+00:00`;
+  
+    return formattedDateTime;
+  };
+  
+
   const handleUpdateBudget = async () => {
     setIsBudgetEditing(false);
     try {
+      const ghid = null;
       // Make a PUT request to update the monthly budget
       const updatedBudgetData = {
-        date: gid,
+        date: getTodayOfSelectedMonth(),
         groupBudget: editableBudget,
       };
-      // await axios.put(`/api/group-history/${gid}/${ghid}`, updatedBudgetData, {
-      //   headers: {
-      //     // Authorization: token,
-      //   },
-      // });
+      await axios.post(`/api/group-history/${gid}/${ghid}`, updatedBudgetData, {
+        headers: {
+          // Authorization: token,
+        },
+      });
       fetchTransactions();
       setSnackbarOpen(true);
     } catch (error) {

@@ -27,24 +27,26 @@ const GroupProfile = () => {
   const [groupBudgetInput, setGroupBudgetInput] = useState(0.0);
 
   const uid = "64dc57cf7214f15e7d70edcd";
-  const gid = "64dbc09b64142a3594918f5d";
+  // const gid = "64dbc09b64142a3594918f5d";
 
   useEffect(() => {
     fetchGroupInfo();
   }, []);
 
   const fetchGroupInfo = async () => {
-    try {
-      // Make a GET request to fetch the expenses from the API endpoint
-      const response = await axios.get(`./api/group/${gid}/by/${uid}`, {
-        headers: {
-          // Authorization: token,
-        },
-      });
-      // Set the retrieved  data to the component state
-      setGroupInfo(response.data);
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
+    if (groupInfo && groupInfo.gid) {
+      try {
+        // Make a GET request to fetch the expenses from the API endpoint
+        const response = await axios.get(`./api/group/${gid}/by/${uid}`, {
+          headers: {
+            // Authorization: token,
+          },
+        });
+        // Set the retrieved  data to the component state
+        setGroupInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+      }
     }
   };
 
@@ -73,12 +75,13 @@ const GroupProfile = () => {
   };
 
   const handleSaveGroupInfo = async () => {
-    if (groupInfo.gName.length) {
+    if (groupInfo.gid) {
       try {
-        // Make a POST request to the add transaction API endpoint
+        // Make a PUT request to the add transaction API endpoint
         const groupData = {
-          gName: groupInfo.gName,
           gid: groupInfo.gid,
+          gName: groupNameInput,
+          listofUserInfo: memberInputs,
         };
         await axios.put(`/api/group/${uid}`, groupData, {
           headers: {
@@ -94,8 +97,9 @@ const GroupProfile = () => {
       try {
         // Make a POST request to the add transaction API endpoint
         const groupData = {
-          gName: groupInfo.gName,
+          gName: groupNameInput,
           defaultBudget: groupInfo.defaultBudget,
+          listofUserInfo: memberInputs,
         };
         await axios.post(`/api/group/${uid}`, groupData, {
           headers: {
