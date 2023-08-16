@@ -1,16 +1,19 @@
 package com.webwarriors.bb.services;
 
+import java.text.DateFormatSymbols;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.webwarriors.bb.models.Group;
 import com.webwarriors.bb.models.Transaction;
 import com.webwarriors.bb.models.User;
+import com.webwarriors.bb.repositories.GroupRepository;
 import com.webwarriors.bb.repositories.TransactionRepository;
 import com.webwarriors.bb.repositories.UserRepository;
-import java.text.DateFormatSymbols;
 
 @Service
 public class TransactionService {
@@ -20,6 +23,9 @@ public class TransactionService {
 
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	GroupRepository groupRepository;
 
 	// create a transaction (individual or group)
 	// API end point: POST /api/transaction/{uid}
@@ -55,12 +61,41 @@ public class TransactionService {
 		int monthInNumber = convertMonthToNumber(month);
 		if (monthInNumber == -1)
 			throw new Exception("Month ".concat(month).concat(" is invalid!"));
-		//get all transactions by uid and by the month
+		// get all transactions by uid and by the month
 		List<Transaction> foundTransaction = transactionRepository.findByUidAndMonth(uid, monthInNumber);
 		return foundTransaction;
 	}
-	
-	// get transaction records by month
+
+	// get transaction records by month for a group
+	// API end point: GET /api/transaction/month/{month}/by/group/{gid}/by/{uid}
+	// give full names of the month - e.g.: august
+	public List<Transaction> getTransactionByMonthForGroup(String month, String gid, String uid) throws Exception {
+
+		// check1: if the user exists
+		Optional<User> foundUser = userRepository.findById(uid);
+		if (!foundUser.isPresent())
+			throw new Exception("The user with id ".concat(uid).concat(" doesn't exist!"));
+
+		// check2: if the group exists
+		Optional<Group> foundGroup = groupRepository.findById(gid);
+		if (!foundGroup.isPresent())
+			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
+
+		// check3: if the user is a member of the group
+		if (!foundUser.get().getGid().equals(gid))
+			throw new Exception("Unauthorized access! The user ".concat(uid)
+					.concat(" is not a member of the group ".concat(gid).concat(" .")));
+
+		// convert month to respective no. for the repo method
+		int monthInNumber = convertMonthToNumber(month);
+		if (monthInNumber == -1)
+			throw new Exception("Month ".concat(month).concat(" is invalid!"));
+		// get all transactions by uid and by gid and month
+		List<Transaction> foundTransaction = transactionRepository.findByUidAndGidAndMonth(uid, gid, monthInNumber);
+		return foundTransaction;
+	}
+
+	// get transaction records by category
 	// API end point: GET /api/transaction/category/{category}/by/{uid}
 	public List<Transaction> getTransactionByCategory(String category, String uid) throws Exception {
 
@@ -69,7 +104,7 @@ public class TransactionService {
 		if (!foundUser.isPresent())
 			throw new Exception("The user with id ".concat(uid).concat(" doesn't exist!"));
 
-		//get all transactions by uid and by category
+		// get all transactions by uid and by category
 		List<Transaction> foundTransaction = transactionRepository.findByUidAndCategory(uid, category);
 		return foundTransaction;
 	}
