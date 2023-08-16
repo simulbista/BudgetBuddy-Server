@@ -14,6 +14,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const Login = () => {
   const navigate = useNavigate();
+  console.log("hello");
 
   // state variable to check if user registered successfully and redirected here
   //if yes we will display a message else no

@@ -13,9 +13,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-enum Role {
-	ADMIN, USER
-};
+//public enum Role {
+//	ADMIN, USER
+//};
 
 @Data
 @NoArgsConstructor
