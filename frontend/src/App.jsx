@@ -19,15 +19,14 @@ const App = () => {
   const navigate = useNavigate();
 
   // Check if the current route is "/login" or "/register"
-  //const hideNavigation = location.pathname === "/login" || location.pathname === "/register";
-  const hideNavigation = false;
+  const hideNavigation = location.pathname === "/login" || location.pathname === "/register";
 
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     // stores true if jwt exists else false (!! = converts to boolean)
-    // const isLoggedIn = !!localStorage.getItem("token");
-    const isLoggedIn = true;
+    const isLoggedIn = !!localStorage.getItem("uid");
+
     if (
       !isLoggedIn &&
       location.pathname !== "/login" &&

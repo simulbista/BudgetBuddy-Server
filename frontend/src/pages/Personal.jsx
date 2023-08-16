@@ -44,7 +44,7 @@ const Personal = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Default to current month
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Default to current year
 
-  const uid = "64dc57cf7214f15e7d70edcd";
+  const uid = localStorage.getItem("uid");
 
   const handleEditClick = (row) => {
     setSelectedRow({
@@ -78,7 +78,7 @@ const Personal = () => {
       amount: "",
     });
   };
-  const token = localStorage.getItem("token");
+
 
   useEffect(() => {
     fetchTransactions(); // Initial fetching of transactions
@@ -96,9 +96,9 @@ const Personal = () => {
       const response = await axios.get(
         `./api/transaction/month/${selectedMonthStr}/by/${uid}`,
         {
-          headers: {
-            Authorization: token,
-          },
+          // headers: {
+          //   Authorization: token,
+          // },
         }
       );
       //Set the retrieved expenses data to the component state
@@ -113,7 +113,7 @@ const Personal = () => {
       // Make a DELETE request to the remove transaction API endpoint
       await axios.delete(`/api/transaction/${transactionId}/by/${uid}`, {
         headers: {
-          Authorization: token,
+        //  Authorization: token,
         },
       });
       fetchTransactions();
@@ -143,7 +143,7 @@ const Personal = () => {
           };
           await axios.put(`/api/transaction/${uid}`, transcationData, {
             headers: {
-              Authorization: token,
+             // Authorization: token,
             },
           });
           fetchTransactions();
@@ -162,7 +162,7 @@ const Personal = () => {
           };
           await axios.post(`/api/transaction/${uid}`, transcationData, {
             headers: {
-              Authorization: token,
+              //Authorization: token,
             },
           });
           fetchTransactions();

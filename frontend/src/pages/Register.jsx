@@ -58,8 +58,7 @@ const Register = () => {
     let config = {
       headers: {
         "Content-Type": "application/json",
-      },
-      withCredentials: true,
+      }
     };
 
     let data = {
@@ -69,8 +68,8 @@ const Register = () => {
     };
 
     try {
-      const response = await axios.post(`/api/user`, data, config);
-      localStorage.setItem("token", response.data.token);
+      const response = await axios.post(`/api/user/`, data, config);
+
       //let decodeddata = decode(response.data.token);
       //console.log(decodeddata);
       //Store something in localstorage so that we can use it in the login page to indicate successful registration

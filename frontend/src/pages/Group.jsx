@@ -50,27 +50,68 @@ const Group = () => {
   const [isBudgetEditing, setIsBudgetEditing] = useState(false);
   const [editableBudget, setEditableBudget] = useState(0);
 
-  const uid = "64dc57cf7214f15e7d70edcd";
-  const gid = "64dbc09b64142a3594918f5d";
+  const uid = localStorage.getItem("uid");
+  const gid = localStorage.getItem("gid");
 
   const handleEditBudgetClick = () => {
     setIsBudgetEditing(true);
     setEditableBudget(transactions[0].income);
   };
 
+  // const getTodayOfSelectedMonth = () => {
+  //   // Get the current date
+  //   const currentDate = new Date();
+
+  //   // Set the year and month to the selected values
+  //   currentDate.setFullYear(selectedYear);
+  //   currentDate.setMonth(selectedMonth - 1);
+
+  //   // Get the timestamp of the updated date
+  //   const timestamp = currentDate.getTime();
+
+  //   return timestamp;
+  // };
+
+  const getTodayOfSelectedMonth = () => {
+    // Get the current date and time
+    const currentDate = new Date();
+  
+    // Set the year and month to the selected values
+    currentDate.setFullYear(selectedYear);
+    currentDate.setMonth(selectedMonth - 1);
+  
+    // Get the day, month, and year components
+    const day = currentDate.getDate().toString().padStart(2, '0');
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = currentDate.getFullYear().toString();
+  
+    // Get the time components
+    const hours = currentDate.getHours().toString().padStart(2, '0');
+    const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+    const seconds = currentDate.getSeconds().toString().padStart(2, '0');
+    const milliseconds = currentDate.getMilliseconds().toString().padStart(3, '0');
+  
+    // Combine components to create the formatted date and time
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+00:00`;
+  
+    return formattedDateTime;
+  };
+  
+
   const handleUpdateBudget = async () => {
     setIsBudgetEditing(false);
     try {
+      const ghid = null;
       // Make a PUT request to update the monthly budget
       const updatedBudgetData = {
-        date: gid,
+        date: getTodayOfSelectedMonth(),
         groupBudget: editableBudget,
       };
-      // await axios.put(`/api/group-history/${gid}/${ghid}`, updatedBudgetData, {
-      //   headers: {
-      //     // Authorization: token,
-      //   },
-      // });
+      await axios.post(`/api/group-history/${gid}/${ghid}`, updatedBudgetData, {
+        headers: {
+          // Authorization: token,
+        },
+      });
       fetchTransactions();
       setSnackbarOpen(true);
     } catch (error) {
@@ -108,7 +149,7 @@ const Group = () => {
       amount: 0,
     });
   };
-  const token = localStorage.getItem("token");
+ 
 
   useEffect(() => {
     fetchTransactions(); // Initial fetching of transactions
@@ -127,7 +168,7 @@ const Group = () => {
         `./api/transaction/month/${selectedMonthStr}/by/group/${gid}/by/${uid}`,
         {
           headers: {
-            Authorization: token,
+          //  Authorization: token,
           },
         }
       );
@@ -143,7 +184,7 @@ const Group = () => {
       // Make a DELETE request to the remove transaction API endpoint
       await axios.delete(`/api/transaction/${transactionId}/by/${uid}`, {
         headers: {
-          Authorization: token,
+          //Authorization: token,
         },
       });
       fetchTransactions();
@@ -172,7 +213,7 @@ const Group = () => {
           };
           await axios.put(`/api/transaction/${uid}`, transcationData, {
             headers: {
-              Authorization: token,
+            //  Authorization: token,
             },
           });
           fetchTransactions();
@@ -192,7 +233,7 @@ const Group = () => {
           };
           await axios.post(`/api/transaction/${uid}`, transcationData, {
             headers: {
-              Authorization: token,
+             // Authorization: token,
             },
           });
           fetchTransactions();
@@ -372,7 +413,7 @@ const Group = () => {
         </TableContainer>
       )}
 
-      <Button
+      { gid != 'null' && <Button
         onClick={handleAddNewItem}
         sx={{
           color: "#00A03E",
@@ -388,7 +429,7 @@ const Group = () => {
         }}
       >
         + New
-      </Button>
+      </Button>}
 
       <Button
         variant="outlined"

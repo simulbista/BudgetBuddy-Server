@@ -45,7 +45,7 @@ public class AuthController {
 	private SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
 
 
-	@PostMapping("/login")
+	@PostMapping("/auth")
 	public ResponseEntity<?> login(@RequestBody User loginUser, HttpServletRequest request, HttpServletResponse response) {
 		try {
 	    UsernamePasswordAuthenticationToken token = UsernamePasswordAuthenticationToken.unauthenticated(

@@ -14,7 +14,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 const Login = () => {
   const navigate = useNavigate();
-  console.log("hello");
 
   // state variable to check if user registered successfully and redirected here
   //if yes we will display a message else no
@@ -53,6 +52,7 @@ const Login = () => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true
     };
 
     let data = {
@@ -61,9 +61,11 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post(`/api/login`, data, config);
+      const response = await axios.post(`/api/auth`, data, config);
       // console.log(response.data);
-      // localStorage.setItem("token", response.data.token);
+      localStorage.setItem("nick", response.data.nickName);
+      localStorage.setItem("uid", response.data.uid);
+      localStorage.setItem("gid", response.data.gid);
       //console.log(decode(response.data.token));
       navigate("/personal");
     } catch (e) {
@@ -95,6 +97,8 @@ const Login = () => {
           {/* <p>Sign Into Your Account</p> */}
           <Box
             component="form"
+            action="/api/auth"
+            method="POST"
             onSubmit={(e) => onSubmit(e)}
             sx={{ mt: 3, width: 300 }}
           >
