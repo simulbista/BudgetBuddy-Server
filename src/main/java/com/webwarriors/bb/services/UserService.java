@@ -90,10 +90,11 @@ public class UserService {
 	// API end point: PUT /api/user/{uid}/addgroup/{gid}
 	// request body should contain a list of nickname and email (mind the order) as
 	// a list
-	// ["sim", "sb@gmail.com"]
-	public User addUserToGroup(String uid, String gid, List<String> loginDetail) throws Exception {
-		String inputNickName = loginDetail.get(0);
-		String inputEmail = loginDetail.get(1);
+	// ["sim:sb@gmail.com","pal:pb@gmail.com"]
+	public String addUserToGroup(String uid, String gid, List<String> listOfUserInfo) throws Exception {
+
+		String inputNickName, inputEmail = null;
+		User existingUser;
 
 		User user = userRepository.findById(uid).orElse(null);
 		Group group = groupRepository.findById(gid).orElse(null);
@@ -108,28 +109,35 @@ public class UserService {
 		if (!group.getGhid().equals(uid))
 			throw new Exception("Unauthorized Access! User with id " + uid
 					+ " is not the admin of the group".concat(gid).concat(".No add permission!"));
-		// check4: if the email and nickname coming from the request body as loginDetail
-		// belong to the same user (user validation)
-		User userByNickName = userRepository.findByNickName(inputNickName);
-		User userByEmail = userRepository.findByEmail(inputEmail);
-		if (userByNickName == null || userByEmail == null)
-			throw new Exception("User Validation failed! The user email or nick name doesn't exist!");
-		if (!userByNickName.getUid().equals(userByEmail.getUid()))
-			throw new Exception(
-					"User Validation failed! The user email and nick name in the request body don't belong to the same user.");
+		// check4: if the user is already in the group i.e. its gid is equal to the
+		// input gid
+		if (user.getGid() != null && user.getGid().equals(gid)) {
+		    throw new Exception("User with id " + uid + " is already in the group " + gid + ".");
+		}
 
-		// if the user is already in the group i.e. its gid is equal to the input gid
-		if (user.getGid().equals(gid))
-			throw new Exception("User with id " + uid + " is already in the group " + gid + ".");
 
-		// set gid to user (so the user has joined the group)
-		user.setGid(gid);
-		return userRepository.save(user);
+		for (String userInfo : listOfUserInfo) {
+			String[] splitUserInfo = userInfo.split(":");
+			if (splitUserInfo.length != 2)
+				throw new Exception(
+						"The list if user info contains data in the incorrect format. Make sure its nickname:email!");
+			inputNickName = splitUserInfo[0];
+			inputEmail = splitUserInfo[1];
+			if (!validateUser(inputNickName, inputEmail))
+				throw new Exception("Invalid user!");
+
+			// set gid to user (so the user has joined the group)
+			
+			existingUser = userRepository.findByEmail(inputEmail);
+			existingUser.setGid(gid);
+			userRepository.save(existingUser);
+		}
+		return listOfUserInfo.size() + " users have been added to the group successfully!";
 	}
 
 	// remove the user from a group
 	// API end point: PUT /api/user/{uid}/removegroup/{gid}
-	public void removeUserFromGroup(String uid, String gid) throws Exception {
+	public void removeOrLeaveUserFromGroup(String uid, String gid) throws Exception {
 		User user = userRepository.findById(uid).orElse(null);
 		// to check if the group id actually exists in group collection
 		Group group = groupRepository.findById(gid).orElse(null);
@@ -140,8 +148,9 @@ public class UserService {
 		// check1: if group exists
 		if (group == null)
 			throw new Exception("Group with id " + gid + " doesn't exist!");
-		// check3: if user is the group head of the group (only group head can delete)
-		if (!group.getGhid().equals(uid))
+		// check3: if user is the group head of the group (group head can delete) or its
+		// the user trying to remove themselves
+		if (!group.getGhid().equals(uid) || user.getGid().equals(gid))
 			throw new Exception("Unauthorized Access! User with id " + uid
 					+ " is not the head of the group".concat(gid).concat(".No delete permission!"));
 
@@ -169,6 +178,20 @@ public class UserService {
 		User updatedUser = userRepository.save(user);
 
 		return updatedUser;
+	}
+
+	// helper method to validate user before adding them to the group
+	public boolean validateUser(String nick, String email) throws Exception {
+		User userByNickName = userRepository.findByNickName(nick);
+		User userByEmail = userRepository.findByEmail(email);
+		// if both fields are empty
+		if (userByNickName == null || userByEmail == null)
+			throw new Exception("Provided Nickname/email does not exist!");
+		// if both fields i.e. nick and email do not belong to the same user then the
+		// user is invalid
+		if (!userByNickName.getUid().equals(userByEmail.getUid()))
+			throw new Exception("User invalid. Nickname and email should be of the same user!");
+		return true;
 	}
 
 }
