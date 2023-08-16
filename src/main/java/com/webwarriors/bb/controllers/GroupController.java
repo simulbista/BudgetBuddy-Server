@@ -48,7 +48,7 @@ public class GroupController {
 		@SuppressWarnings("unchecked")
 		List<String> listOfUserInfo = (List<String>) gNameWithMembers.get("listofUserInfo");
 		try {
-			groupService.addGroup(uid, gName,defaultBudget, listOfUserInfo);
+			groupService.addGroup(uid, gName, defaultBudget, listOfUserInfo);
 			String successMessage = "Group ".concat(gName).concat(" has been created!");
 			return new ResponseEntity<String>(successMessage, HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -104,6 +104,14 @@ public class GroupController {
 			message = "Error deleting user: " + e.getMessage();
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	// check if the user is the group head
+	// API end point: GET /api/group/{gid}/ishead/{uid}
+	// return true if group head else false
+	@GetMapping("/{gid}/ishead/{uid}")
+	public boolean isGroupHead(@PathVariable String uid, @PathVariable String gid) throws Exception {
+		return groupService.isGroupHead(uid, gid);
 	}
 
 }
