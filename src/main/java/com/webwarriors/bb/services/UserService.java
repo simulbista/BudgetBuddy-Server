@@ -48,19 +48,19 @@ public class UserService implements UserDetailsService {
 	// get users by gId
 	// API end point: GET /api/user/all/{gid}
 	public Optional<List<User>> getUsersByGid(String gid) {
+		System.out.println(gid);
 		return userRepository.findAllBygid(gid);
 	}
 
 //	@Autowired
 //	private BCryptPasswordEncoder passwordEncoder;
 
-	
 	public BCryptPasswordEncoder encoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
+
 	@Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+	private BCryptPasswordEncoder passwordEncoder;
 
 	// add user
 	// API end point: POST /api/user/
@@ -91,61 +91,91 @@ public class UserService implements UserDetailsService {
 		// since when updating the user record, the createdDate in mongo goes to null
 		// we manually set all the fields except for the created Date (which was set
 		// when the user was first created)
-		User updatedUser = foundUser.get();
-		updatedUser.setNickName(updatedUser.getNickName());
-		updatedUser.setEmail(updatedUser.getEmail());
-		updatedUser.setPassword(updatedUser.getPassword());
-		updatedUser.setRole(updatedUser.getRole());
-		updatedUser.setGid(updatedUser.getGid());
-		updatedUser.setUpdatedAt(new Date(System.currentTimeMillis()));
-		return userRepository.save(updatedUser);
+		User existingUser = foundUser.get();
+		if (user.getNickName() != null)
+			existingUser.setNickName(user.getNickName());
+		if (user.getEmail() != null)
+			existingUser.setEmail(user.getEmail());
+		if (user.getPassword() != null)
+			existingUser.setPassword(user.getPassword());
+		if (user.getRole() != null)
+			existingUser.setRole(user.getRole());
+		if (user.getGid() != null)
+			existingUser.setGid(user.getGid());
+		existingUser.setUpdatedAt(new Date(System.currentTimeMillis()));
+		return userRepository.save(existingUser);
 	}
 
-	
 	// add the user to a group
-	// API end point: POST /api/user/{uid}/addgroup/{gid}
-	public User addUserToGroup(String uid, String gid) throws Exception {
+	// API end point: PUT /api/user/{uid}/addgroup/{gid}
+	// request body should contain a list of nickname and email (mind the order) as
+	// a list
+	// ["sim:sb@gmail.com","pal:pb@gmail.com"]
+	public String addUserToGroup(String uid, String gid, List<String> listOfUserInfo) throws Exception {
+
+		String inputNickName, inputEmail = null;
+		User existingUser;
+
 		User user = userRepository.findById(uid).orElse(null);
 		Group group = groupRepository.findById(gid).orElse(null);
 
-		// to check if the user already belongs to the given group id
-		String gidInUser = userRepository.findById(uid).orElse(null).getGid();
-
-		// ??????????????????? add a new parameter of the user deleting (ghid), if ghid
-		// is of that group, then allow this
-		// and add by matching nickname and email for the uid (input nick and email) -
-		// may be remove uid?
-
+		// check1: if user exists
 		if (user == null)
 			throw new Exception("User with id " + uid + " doesn't exist!");
+		// check1: if group exists
 		if (group == null)
 			throw new Exception("Group with id " + gid + " doesn't exist!");
-		if (gidInUser != null)
-			throw new Exception("The user " + uid + " already belongs to the group " + gid + "!");
+		// check3: if user is the group head of the group (only group head can add)
+		if (!group.getGhid().equals(uid))
+			throw new Exception("Unauthorized Access! User with id " + uid
+					+ " is not the admin of the group".concat(gid).concat(".No add permission!"));
+		// check4: if the user is already in the group i.e. its gid is equal to the
+		// input gid
+		if (user.getGid() != null && user.getGid().equals(gid)) {
+			throw new Exception("User with id " + uid + " is already in the group " + gid + ".");
+		}
 
-		// set gid to user (so the user has joined the group)
-		user.setGid(gid);
-		return userRepository.save(user);
+		for (String userInfo : listOfUserInfo) {
+			String[] splitUserInfo = userInfo.split(":");
+			if (splitUserInfo.length != 2)
+				throw new Exception(
+						"The list if user info contains data in the incorrect format. Make sure its nickname:email!");
+			inputNickName = splitUserInfo[0];
+			inputEmail = splitUserInfo[1];
+			if (!validateUser(inputNickName, inputEmail))
+				throw new Exception("Invalid user!");
+
+			// set gid to user (so the user has joined the group)
+
+			existingUser = userRepository.findByEmail(inputEmail);
+			existingUser.setGid(gid);
+			userRepository.save(existingUser);
+		}
+		return listOfUserInfo.size() + " users have been added to the group successfully!";
 	}
 
 	// remove the user from a group
 	// API end point: PUT /api/user/{uid}/removegroup/{gid}
-	public void removeUserFromGroup(String uid, String gid) throws Exception {
+	public void removeOrLeaveUserFromGroup(String uid, String gid) throws Exception {
 		User user = userRepository.findById(uid).orElse(null);
 		// to check if the group id actually exists in group collection
 		Group group = groupRepository.findById(gid).orElse(null);
-		// to check if the user actually belongs to the given group id
-		String gidInUser = userRepository.findById(uid).orElse(null).getGid();
 
-		// ??????????????????? add a new parameter of the user deleting (ghid), if ghid
-		// is of that group, then allow this
-
+		// check1: if user exists
 		if (user == null)
 			throw new Exception("User with id " + uid + " doesn't exist!");
+		// check1: if group exists
 		if (group == null)
 			throw new Exception("Group with id " + gid + " doesn't exist!");
-		if (gidInUser == null)
-			throw new Exception("The user " + uid + " doesn't belong to the group " + gid + "!");
+		// check3: if user is the group head of the group (group head can delete) or its
+		// the user trying to remove themselves
+		if (!group.getGhid().equals(uid) || user.getGid().equals(gid))
+			throw new Exception("Unauthorized Access! User with id " + uid
+					+ " is not the head or the member of the group".concat(gid).concat(".No delete permission!"));
+
+		// if the user has already been removed from the group i.e. gid is null
+		if (user.getGid() == null)
+			throw new Exception("User with id " + uid + " is not in the group " + gid + ".");
 
 		user.setGid(null);
 		userRepository.save(user);
@@ -169,6 +199,20 @@ public class UserService implements UserDetailsService {
 		return updatedUser;
 	}
 
+	// helper method to validate user before adding them to the group
+	public boolean validateUser(String nick, String email) throws Exception {
+		User userByNickName = userRepository.findByNickName(nick);
+		User userByEmail = userRepository.findByEmail(email);
+		// if both fields are empty
+		if (userByNickName == null || userByEmail == null)
+			throw new Exception("Provided Nickname/email does not exist!");
+		// if both fields i.e. nick and email do not belong to the same user then the
+		// user is invalid
+		if (!userByNickName.getUid().equals(userByEmail.getUid()))
+			throw new Exception("User invalid. Nickname and email should be of the same user!");
+		return true;
+	}
+
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
@@ -185,5 +229,12 @@ public class UserService implements UserDetailsService {
 
 		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
 	}
+	
+	public User getUserByEmail(String email) {
+		
+		return userRepository.findByEmail(email);
+	}
+	
+	
 
 }

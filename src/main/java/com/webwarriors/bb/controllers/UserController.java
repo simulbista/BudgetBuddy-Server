@@ -83,13 +83,16 @@ public class UserController {
 	}
 
 	// add the user to a group
-	// API end point: POST /api/user/{uid}/addgroup/{gid}
+	// API end point: PUT /api/user/{uid}/addgroup/{gid}
+	// request body should contain a list of nickname and email (mind the order) as
+	// a list
+	// ["sim:sb@gmail.com","pal:pb@gmail.com"]
 	@PutMapping("/{uid}/addgroup/{gid}")
-	public ResponseEntity<String> addUserToGroup(@PathVariable String uid, @PathVariable String gid) {
+	public ResponseEntity<String> addUserToGroup(@PathVariable String uid, @PathVariable String gid,
+			@RequestBody List<String> listOfUserInfo) {
 		String message;
 		try {
-			message = "User with id ".concat(uid).concat(" has been added to the group ".concat(gid).concat("."));
-			userService.addUserToGroup(uid, gid);
+			message = userService.addUserToGroup(uid, gid, listOfUserInfo);
 			return new ResponseEntity<String>(message, HttpStatus.CREATED);
 		} catch (Exception e) {
 			message = "Error updating user: " + e.getMessage();
@@ -100,11 +103,11 @@ public class UserController {
 	// remove the user from a group
 	// API end point: PUT /api/user/{uid}/removegroup/{gid}
 	@PutMapping("/{uid}/removegroup/{gid}")
-	public ResponseEntity<String> removeUserFromGroup(@PathVariable String uid, @PathVariable String gid) {
+	public ResponseEntity<String> removeOrLeaveUserFromGroup(@PathVariable String uid, @PathVariable String gid) {
 		String message;
 		try {
 			message = "User with id ".concat(uid).concat(" has been added to the group ".concat(gid).concat("."));
-			userService.removeUserFromGroup(uid, gid);
+			userService.removeOrLeaveUserFromGroup(uid, gid);
 			return new ResponseEntity<String>(message, HttpStatus.CREATED);
 		} catch (Exception e) {
 			message = "Error updating user: " + e.getMessage();

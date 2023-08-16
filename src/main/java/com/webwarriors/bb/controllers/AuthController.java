@@ -58,7 +58,7 @@ public class AuthController {
 	    System.out.println("authentication.getName()");
 	    //If authentication is successful, it will return a 200 OK with user details
 		if (authentication.isAuthenticated()) {
-			return ResponseEntity.ok(authentication.getPrincipal());
+			return ResponseEntity.ok(userService.getUserByEmail(loginUser.getEmail()));
 		}
 		return ResponseEntity.badRequest().body("Could not authenticate");
 	} catch (BadCredentialsException e) {

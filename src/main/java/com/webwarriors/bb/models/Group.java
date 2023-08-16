@@ -11,12 +11,14 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Document(collection = "groups")
 public class Group {
 
@@ -29,6 +31,7 @@ public class Group {
 	@JsonProperty("gName")
 	private String gName;
 	private String ghid;
+	private double defaultBudget;
 	private boolean deleteFlag;
 
 	@CreatedDate
