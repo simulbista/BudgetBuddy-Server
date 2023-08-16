@@ -152,7 +152,7 @@ public class UserService {
 		// the user trying to remove themselves
 		if (!group.getGhid().equals(uid) || user.getGid().equals(gid))
 			throw new Exception("Unauthorized Access! User with id " + uid
-					+ " is not the head of the group".concat(gid).concat(".No delete permission!"));
+					+ " is not the head or the member of the group".concat(gid).concat(".No delete permission!"));
 
 		// if the user has already been removed from the group i.e. gid is null
 		if (user.getGid() == null)

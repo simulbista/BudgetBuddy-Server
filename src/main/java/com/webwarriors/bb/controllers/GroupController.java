@@ -1,7 +1,7 @@
 package com.webwarriors.bb.controllers;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webwarriors.bb.models.Group;
 import com.webwarriors.bb.services.GroupService;
 
 @RestController
@@ -25,13 +24,32 @@ public class GroupController {
 	@Autowired
 	GroupService groupService;
 
-	// create a group
-	// API end point: POST /api/group/{uid}
+//	 create a group
+//	 API end point: POST /api/group/{uid}
+//	 the request body store data like:
+//	 {
+//		 gName: "Code Crafters",
+//		 defaultBudget: 1000,
+//		 listofUserInfo: ["pal:pb@gmail.com","sim:sim@gmail.com"]
+//	 }
 	@PostMapping("/{uid}")
-	public ResponseEntity<String> addGroup(@PathVariable String uid, @RequestBody Group group) {
+	public ResponseEntity<String> addGroup(@PathVariable String uid,
+			@RequestBody Map<String, Object> gNameWithMembers) {
+		// destructuring groupName and members
+		String gName = (String) gNameWithMembers.get("gName");
+		double defaultBudget;
+		if ((Double) gNameWithMembers.get("defaultBudget") != null) {
+			defaultBudget = (Double) gNameWithMembers.get("defaultBudget");
+		} else {
+			// default budget is 0 when not provided
+			defaultBudget = 0;
+		}
+
+		@SuppressWarnings("unchecked")
+		List<String> listOfUserInfo = (List<String>) gNameWithMembers.get("listofUserInfo");
 		try {
-			groupService.addGroup(uid, group);
-			String successMessage = "Group ".concat(group.getGName()).concat(" has been created!");
+			groupService.addGroup(uid, gName,defaultBudget, listOfUserInfo);
+			String successMessage = "Group ".concat(gName).concat(" has been created!");
 			return new ResponseEntity<String>(successMessage, HttpStatus.CREATED);
 		} catch (Exception e) {
 			String errorMessage = "Error creating group: " + e.getMessage();
@@ -48,19 +66,31 @@ public class GroupController {
 
 	// update group
 	// API end point: PUT /api/group/{uid}
-	//Request body must include gid and gName
+	// the request body store data(gid,gName,listofgroupmembers) like:
+//	{
+//		 gid: "64dbc09b64142a3594918f5d"
+//		 gName: "Code Crafters",
+//		 listofUserInfo: ["pal:pb@gmail.com","sim:sim@gmail.com"]
+//	}
 	@PutMapping("/{uid}")
-	public ResponseEntity<String> updateGroup(@PathVariable String uid, @RequestBody Group group) {
+	public ResponseEntity<String> updateGroup(@PathVariable String uid,
+			@RequestBody Map<String, Object> groupDetailsForUpdate) {
+		// destructuring groupName and members
+		String gid = (String) groupDetailsForUpdate.get("gid");
+		String gName = (String) groupDetailsForUpdate.get("gName");
+		@SuppressWarnings("unchecked")
+		List<String> listOfUserInfo = (List<String>) groupDetailsForUpdate.get("listofUserInfo");
 		String message;
 		try {
-			groupService.updateGroup(uid, group);
-			message = "Group with id ".concat(group.getGid()).concat(" has been updated!");
+			groupService.updateGroup(uid, gid, gName, listOfUserInfo);
+			message = "Group with id ".concat(gid).concat(" has been updated!");
 			return new ResponseEntity<String>(message, HttpStatus.CREATED);
 		} catch (Exception e) {
 			message = "Error updating group: " + e.getMessage();
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
 	}
+
 	// delete group
 	// API end point: DELETE /api/group/{gid}/by/{uid}
 	@DeleteMapping("/{gid}/by/{uid}")
@@ -74,6 +104,6 @@ public class GroupController {
 			message = "Error deleting user: " + e.getMessage();
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
-	} 
+	}
 
 }
