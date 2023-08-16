@@ -60,9 +60,9 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post(`/api/auth`, data, config);
-      console.log(response.data);
-      localStorage.setItem("token", response.data.token);
+      const response = await axios.post(`/api/login`, data, config);
+      // console.log(response.data);
+      // localStorage.setItem("token", response.data.token);
       //console.log(decode(response.data.token));
       navigate("/personal");
     } catch (e) {

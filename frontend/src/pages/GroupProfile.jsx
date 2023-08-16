@@ -9,7 +9,9 @@ import {
   List,
   ListItem,
   ListItemText,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const GroupProfile = () => {
   const [groupInfo, setGroupInfo] = useState({
@@ -44,6 +46,13 @@ const GroupProfile = () => {
     } catch (error) {
       console.error("Error fetching transactions:", error);
     }
+  };
+
+  const handleDeleteMember = (index) => {
+    const updatedMemberInputs = [...memberInputs];
+    updatedMemberInputs.splice(index, 1);
+    setMemberInputs(updatedMemberInputs);
+    setNumMembersToAdd(updatedMemberInputs.length);
   };
 
   const handleOpenModal = () => {
@@ -102,18 +111,34 @@ const GroupProfile = () => {
   };
 
   const handleEditGroup = () => {
-    setGroupNameInput(groupInfo.groupName);
+    setGroupNameInput(groupInfo.gName);
     setNumMembersToAdd(groupInfo.members.length);
     setMemberInputs(groupInfo.members);
     handleOpenModal();
   };
 
-  const handleLeaveGroup = () => {
-    setGroupInfo({
-      gName: "",
-      members: [],
-      defaultBudget: 0.0,
-    });
+  const handleLeaveGroup = async () => {
+    try {
+      // Make a POST request to the add transaction API endpoint
+      const groupData = {
+        gName: groupInfo.gName,
+        gid: groupInfo.gid,
+      };
+      await axios.put(`/api/user/${uid}/removegroup/${gid}`, groupData, {
+        headers: {
+          // Authorization: token,
+        },
+      });
+      fetchGroupInfo();
+      setGroupInfo({
+        gName: "",
+        members: [],
+        defaultBudget: 0.0,
+      });
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error leaving group:", error);
+    }
   };
 
   return (
@@ -121,7 +146,7 @@ const GroupProfile = () => {
       <Typography variant="h4" gutterBottom padding="3rem" color="#00A03E">
         Group Profile
       </Typography>
-      {groupInfo.groupName && (
+      {groupInfo.gName && (
         <Typography variant="h6">Group Name: {groupInfo.gName}</Typography>
       )}
       {groupInfo.defaultBudget !== 0 && (
@@ -148,7 +173,7 @@ const GroupProfile = () => {
           </List>
         </div>
       )}
-      {groupInfo.gName && (
+      {groupInfo.gid && (
         <div>
           <Button
             variant="outlined"
@@ -188,7 +213,7 @@ const GroupProfile = () => {
           </Button>
         </div>
       )}
-      {!groupInfo.gName && (
+      {!groupInfo.gid && (
         <Button
           variant="outlined"
           color="primary"
@@ -226,15 +251,17 @@ const GroupProfile = () => {
             fullWidth
             margin="normal"
           />
-          <TextField
-            type="number"
-            label="Group Budget"
-            value={groupBudgetInput}
-            required
-            onChange={(e) => setGroupBudgetInput(parseFloat(e.target.value))}
-            fullWidth
-            margin="normal"
-          />
+          {groupInfo.defaultBudget == 0 && (
+            <TextField
+              type="number"
+              label="Group Budget"
+              value={groupBudgetInput}
+              required
+              onChange={(e) => setGroupBudgetInput(parseFloat(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          )}
           <TextField
             type="number"
             label="Number of Members to Add"
@@ -245,16 +272,24 @@ const GroupProfile = () => {
             margin="normal"
           />
           {Array.from({ length: numMembersToAdd }).map((_, index) => (
-            <TextField
-              key={index}
-              label={`Member ${index + 1}`}
-              value={memberInputs[index] || ""}
-              onChange={(e) =>
-                handleAddMemberInputChange(index, e.target.value)
-              }
-              fullWidth
-              margin="normal"
-            />
+            <div key={index} style={{ display: "flex", alignItems: "center" }}>
+              <TextField
+                label={`Member ${index + 1}`}
+                value={memberInputs[index] || ""}
+                onChange={(e) =>
+                  handleAddMemberInputChange(index, e.target.value)
+                }
+                fullWidth
+                margin="normal"
+              />
+              <IconButton
+                color="error"
+                aria-label="delete"
+                onClick={() => handleDeleteMember(index)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </div>
           ))}
           <Button
             variant="contained"

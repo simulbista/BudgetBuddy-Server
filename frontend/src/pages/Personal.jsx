@@ -52,7 +52,7 @@ const Personal = () => {
       date: convertTimestampToDate(row.transactionDate),
       isIncome: row.expense == 0,
       amount: row.expense == 0 ? row.income : row.expense,
-      tid: row.tid
+      tid: row.tid,
     });
     setOpenModal(true);
   };
@@ -63,7 +63,6 @@ const Personal = () => {
   };
 
   const handleFieldChange = (field, value) => {
-
     setSelectedRow((prevRow) => ({
       ...prevRow,
       [field]: field === "isIncome" ? !prevRow.isIncome : value,
@@ -76,7 +75,7 @@ const Personal = () => {
       name: "",
       date: "",
       isIncome: false,
-      amount: ""
+      amount: "",
     });
   };
   const token = localStorage.getItem("token");
@@ -206,7 +205,7 @@ const Personal = () => {
       </Typography>
       {/* Add the dropdowns for selecting month and year */}
 
-      <Grid container marginTop={2}>
+      <Grid container marginTop={2} marginBottom={2}>
         <Grid item>
           <TextField
             select

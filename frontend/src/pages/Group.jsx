@@ -15,9 +15,14 @@ import {
   TextField,
   Grid,
   MenuItem,
+  IconButton,
 } from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import {
+  Edit as EditIcon,
+  CheckCircle as CheckCircleIcon,
+} from "@mui/icons-material";
 import { convertTimestampToDate } from "../utils/dateUtils";
 
 const Group = () => {
@@ -42,15 +47,43 @@ const Group = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Default to current month
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Default to current year
+  const [isBudgetEditing, setIsBudgetEditing] = useState(false);
+  const [editableBudget, setEditableBudget] = useState(0);
 
   const uid = "64dc57cf7214f15e7d70edcd";
+  const gid = "64dbc09b64142a3594918f5d";
+
+  const handleEditBudgetClick = () => {
+    setIsBudgetEditing(true);
+    setEditableBudget(transactions[0].income);
+  };
+
+  const handleUpdateBudget = async () => {
+    setIsBudgetEditing(false);
+    try {
+      // Make a PUT request to update the monthly budget
+      const updatedBudgetData = {
+        date: gid,
+        groupBudget: editableBudget,
+      };
+      // await axios.put(`/api/group-history/${gid}/${ghid}`, updatedBudgetData, {
+      //   headers: {
+      //     // Authorization: token,
+      //   },
+      // });
+      fetchTransactions();
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error("Error updating monthly budget:", error);
+    }
+  };
 
   const handleEditClick = (row) => {
     setSelectedRow({
       name: row.category,
       date: convertTimestampToDate(row.transactionDate),
       amount: row.expense == 0 ? row.income : row.expense,
-      tid: row.tid
+      tid: row.tid,
     });
     setOpenModal(true);
   };
@@ -91,7 +124,7 @@ const Group = () => {
         }
       );
       const response = await axios.get(
-        `./api/transaction/month/${selectedMonthStr}/by/${uid}`,
+        `./api/transaction/month/${selectedMonthStr}/by/group/${gid}/by/${uid}`,
         {
           headers: {
             Authorization: token,
@@ -135,7 +168,7 @@ const Group = () => {
             tid: selectedRow.tid,
             category: selectedRow.name,
             expense: selectedRow.amount,
-            transactionDate: selectedRow.date
+            transactionDate: selectedRow.date,
           };
           await axios.put(`/api/transaction/${uid}`, transcationData, {
             headers: {
@@ -155,7 +188,7 @@ const Group = () => {
             expense: selectedRow.isIncome ? 0 : selectedRow.amount,
             income: selectedRow.isIncome ? selectedRow.amount : 0,
             transactionDate: selectedRow.date,
-            gid: "64dbc09b64142a3594918f5d"
+            gid: gid,
           };
           await axios.post(`/api/transaction/${uid}`, transcationData, {
             headers: {
@@ -198,7 +231,7 @@ const Group = () => {
       </Typography>
       {/* Add the dropdowns for selecting month and year */}
 
-      <Grid container marginTop={2}>
+      <Grid container marginTop={2} marginBottom={2}>
         <Grid item xs={3}>
           <TextField
             select
@@ -241,6 +274,40 @@ const Group = () => {
             </Typography>
           </Box>
         </Grid>
+        {transactions.length > 0 && (
+          <Grid item xs={3}>
+            <Box>
+              <Typography variant="h6">Monthly Budget: </Typography>
+              {isBudgetEditing ? (
+                <div style={{ display: "inline-flex" }}>
+                  <TextField
+                    type="number"
+                    value={editableBudget}
+                    onChange={(e) => setEditableBudget(e.target.value)}
+                  />
+                  <IconButton
+                    sx={{ color: "#00A03E" }}
+                    onClick={handleUpdateBudget}
+                  >
+                    <CheckCircleIcon />
+                  </IconButton>
+                </div>
+              ) : (
+                <div style={{ display: "inline-flex" }}>
+                  <Typography variant="h6" style={{ color: "blue" }}>
+                    {transactions[0].income}
+                  </Typography>
+                  <IconButton
+                    sx={{ color: "#00A03E" }}
+                    onClick={handleEditBudgetClick}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </div>
+              )}
+            </Box>
+          </Grid>
+        )}
       </Grid>
 
       {transactions.length === 0 ? (
@@ -248,7 +315,7 @@ const Group = () => {
       ) : (
         <TableContainer>
           <Table>
-            <TableHead sx={{backgroundColor:"lightgoldenrodyellow"}}>
+            <TableHead sx={{ backgroundColor: "lightgoldenrodyellow" }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: "bold" }}>Category</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
@@ -261,7 +328,9 @@ const Group = () => {
               {transactions.map((row, index) => (
                 <TableRow key={row.tid}>
                   <TableCell>{row.category}</TableCell>
-                  <TableCell>{convertTimestampToDate(row.transactionDate)}</TableCell>
+                  <TableCell>
+                    {convertTimestampToDate(row.transactionDate)}
+                  </TableCell>
                   <TableCell style={{ color: "red" }}>Expense</TableCell>
                   <TableCell>{row.expense}</TableCell>
                   <TableCell>
