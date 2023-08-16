@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.webwarriors.bb.models.Group;
 import com.webwarriors.bb.models.User;
@@ -23,11 +24,21 @@ public class GroupService {
 	@Autowired
 	UserRepository userRepository;
 
-	// create a group
-	// API end point: POST /api/group/{uid}
-	public Group addGroup(String uid, Group group) throws Exception {
+//	 create a group
+//	 API end point: POST /api/group/{uid}
+//	 the request body store data like:
+//	 {
+//		 gName: "Code Crafters",
+//		 defaultBudget: 1000,
+//		 listofUserInfo: ["pal:pb@gmail.com","sim:sim@gmail.com"]
+//	 }
+	public Group addGroup(String uid, String gName, Double defaultBudget, List<String> listOfUserInfo)
+			throws Exception {
+		String inputNickName, inputEmail = null;
+		User existingUser;
+
 		// check1:cannot create group with already existing group name
-		Group foundGroup = groupRepository.findBygName(group.getGName());
+		Group foundGroup = groupRepository.findBygName(gName);
 		if (foundGroup != null)
 			throw new Exception("Group already exists! Please try a different group name.");
 
@@ -45,17 +56,41 @@ public class GroupService {
 			throw new Exception("The user ".concat(uid)
 					.concat(" is the group head of an existing group. Cannot create more than one group!"));
 
-		// save the uid of the user creating group as the ghid (the one creating the
-		// group becomes the group head)
-		group.setGhid(uid);
+		// Create a group with required data and save it to the repo
+		// save the name of the group and then uid of the user as the gid of the group
+		// (the one creating the group becomes the group head)
+		Group createdGroup = new Group();
+		createdGroup.setGhid(uid);
+		createdGroup.setGName(gName);
+		createdGroup.setDefaultBudget(defaultBudget);
+		groupRepository.save(createdGroup);
 
-		Group createdGroup = groupRepository.save(group);
+		// Update the group head(the one creating the group)'s gid to the just created
+		// group id
+		// to indicate it is a member of the group
+		User groupHead = optionalExistingUser.get();
+		groupHead.setGid(createdGroup.getGid());
+		userRepository.save(groupHead);
 
-		// also save this gid(that just got created) in the user record (since the user
-		// is a member of the group now)
-		User toBeSavedUser = optionalExistingUser.get();
-		toBeSavedUser.setGid(createdGroup.getGid());
-		userRepository.save(toBeSavedUser);
+		// Now we need to add all the members coming from the request body to the group
+		// i.e. set their gid to the gid of the newly created group
+
+		for (String userInfo : listOfUserInfo) {
+			String[] splitUserInfo = userInfo.split(":");
+			if (splitUserInfo.length != 2)
+				throw new Exception(
+						"The list if user info contains data in the incorrect format. Make sure its nickname:email!");
+			inputNickName = splitUserInfo[0];
+			inputEmail = splitUserInfo[1];
+			if (!validateUser(inputNickName, inputEmail))
+				throw new Exception("Invalid user!");
+
+			// set gid to user (so the user has joined the group)
+
+			existingUser = userRepository.findByEmail(inputEmail);
+			existingUser.setGid(createdGroup.getGid());
+			userRepository.save(existingUser);
+		}
 
 		return createdGroup;
 	}
@@ -94,24 +129,43 @@ public class GroupService {
 			resultMemberEmails.add(eachMember);
 		}
 
-	    Map<String, Object> searchedGroup = new HashMap<>();
-	    searchedGroup.put("defaultBudget", resultGroupBudget);
-	    searchedGroup.put("gName", resultGroupName);
-	    searchedGroup.put("ghid", resultghid);
-	    searchedGroup.put("gid", resultgid);
-	    searchedGroup.put("members", resultMemberEmails);
-	    
+		Map<String, Object> searchedGroup = new HashMap<>();
+		searchedGroup.put("defaultBudget", resultGroupBudget);
+		searchedGroup.put("gName", resultGroupName);
+		searchedGroup.put("ghid", resultghid);
+		searchedGroup.put("gid", resultgid);
+		searchedGroup.put("members", resultMemberEmails);
+
 		return searchedGroup;
 	}
 
 	// update group
 	// API end point: PUT /api/group/{uid}
-	public Group updateGroup(String uid, Group group) throws Exception {
-		Optional<Group> foundGroup = groupRepository.findById(group.getGid());
+	// the request body store data(gid,gName,listofgroupmembers) like:
+//	{
+//		 gid: "64dbc09b64142a3594918f5d"
+//		 gName: "Code Crafters",
+//		 listofUserInfo: ["pal:pb@gmail.com","sim:sim@gmail.com"]
+//	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public Group updateGroup(String uid, String gid, String gName, List<String> listOfUserInfo) throws Exception {
+
+		String inputNickName, inputEmail = null;
+		User toBeAddedUser;
+		Optional<Group> foundGroup = groupRepository.findById(gid);
+		List<User> existingMembersOfTheGroup = userRepository.findAllBygid(gid).get();
+		
+		//removing all the existing members from the group
+		//because we are using the new list (from request body) as the only members in the group
+		for (User existingMember : existingMembersOfTheGroup) {
+			existingMember.setGid(null);
+		}
+		
 
 		// check1: if the group exists
 		if (!foundGroup.isPresent())
-			throw new Exception("The group with id ".concat(group.getGid()).concat(" doesn't exist!"));
+			throw new Exception("The group with id ".concat(gid).concat(" doesn't exist!"));
 
 		// check2: if the user exists
 		Optional<User> foundUser = userRepository.findById(uid);
@@ -123,14 +177,38 @@ public class GroupService {
 		// info
 		if (!uid.equals(foundGroup.get().getGhid()))
 			throw new Exception("Only group heads are allowed to update the group. User ".concat(uid)
-					.concat(" is not the head of the group ").concat(group.getGid().concat(" .")));
+					.concat(" is not the head of the group ").concat(gid).concat(" ."));
 
 		// Retrieve the existing group data
 		Group existingGroup = foundGroup.get();
 		// Copy the new data(just the group name) to the existing group object,
 		// preserving other fields such as createdDate and ghid
 		// if this is not done, both the fields get overwritten to null (gets replaced)
-		existingGroup.setGName(group.getGName());
+		existingGroup.setGName(gName);
+
+
+		// saving the input users first
+		for (String userInfo : listOfUserInfo) {
+			String[] splitUserInfo = userInfo.split(":");
+			if (splitUserInfo.length != 2)
+				throw new Exception(
+						"The list if user info contains data in the incorrect format. Make sure its nickname:email!");
+			inputNickName = splitUserInfo[0];
+			inputEmail = splitUserInfo[1];
+			if (!validateUser(inputNickName, inputEmail))
+				throw new Exception("Invalid user!");
+
+			// set gid to user (so the user has joined the group)
+			toBeAddedUser = userRepository.findByEmail(inputEmail);
+			// if one of the users is already in the group, dont add it to the group(skip) 
+			// move to the next user( iteration in the loop)
+			if (toBeAddedUser.getGid() != null)
+				continue;
+
+			toBeAddedUser.setGid(gid);
+			userRepository.save(toBeAddedUser);
+		}
+
 		return groupRepository.save(existingGroup);
 	}
 
@@ -172,6 +250,20 @@ public class GroupService {
 		foundGroup.setDeleteFlag(true);
 		return groupRepository.save(foundGroup);
 
+	}
+
+	// helper method to validate user before adding them to the group
+	public boolean validateUser(String nick, String email) throws Exception {
+		User userByNickName = userRepository.findByNickName(nick);
+		User userByEmail = userRepository.findByEmail(email);
+		// if both fields are empty
+		if (userByNickName == null || userByEmail == null)
+			throw new Exception("Provided Nickname/email does not exist!");
+		// if both fields i.e. nick and email do not belong to the same user then the
+		// user is invalid
+		if (!userByNickName.getUid().equals(userByEmail.getUid()))
+			throw new Exception("User invalid. Nickname and email should be of the same user!");
+		return true;
 	}
 
 }
