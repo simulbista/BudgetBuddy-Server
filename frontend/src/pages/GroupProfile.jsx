@@ -26,7 +26,8 @@ const GroupProfile = () => {
   const [memberInputs, setMemberInputs] = useState([]);
   const [groupBudgetInput, setGroupBudgetInput] = useState(0.0);
 
-  const uid = "64dc57cf7214f15e7d70edcd";
+  // const uid = "64dc57cf7214f15e7d70edcd";
+  const uid = "64dc576a7214f15e7d70edcc";
   // const gid = "64dbc09b64142a3594918f5d";
 
   useEffect(() => {
@@ -37,7 +38,8 @@ const GroupProfile = () => {
     if (groupInfo && groupInfo.gid) {
       try {
         // Make a GET request to fetch the expenses from the API endpoint
-        const response = await axios.get(`./api/group/${gid}/by/${uid}`, {
+        // const response = await axios.get(`./api/group/${groupInfo.gid}/by/${uid}`, {
+          const response = await axios.get(`./api/group/64dd11bc1b52f1352d79be88/by/${uid}`, {
           headers: {
             // Authorization: token,
           },
@@ -98,7 +100,7 @@ const GroupProfile = () => {
         // Make a POST request to the add transaction API endpoint
         const groupData = {
           gName: groupNameInput,
-          defaultBudget: groupInfo.defaultBudget,
+          defaultBudget: groupBudgetInput,
           listofUserInfo: memberInputs,
         };
         await axios.post(`/api/group/${uid}`, groupData, {
