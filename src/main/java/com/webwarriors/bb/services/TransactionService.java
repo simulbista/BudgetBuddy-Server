@@ -26,6 +26,9 @@ public class TransactionService {
 
 	@Autowired
 	GroupRepository groupRepository;
+	
+	@Autowired
+	GroupHistoryService ghService;
 
 	// create a transaction (individual or group)
 	// API end point: POST /api/transaction/{uid}
@@ -91,7 +94,12 @@ public class TransactionService {
 		if (monthInNumber == -1)
 			throw new Exception("Month ".concat(month).concat(" is invalid!"));
 		// get all transactions by uid and by gid and month
-		List<Transaction> foundTransaction = transactionRepository.findByUidAndGidAndMonth(uid, gid, monthInNumber);
+		List<Transaction> foundTransaction = transactionRepository.findByGidAndMonth(gid, monthInNumber);
+		
+		//set the latest group budget for the month to the income field (so that it can be displayed back in the frontend)
+		for(Transaction eachtransaction : foundTransaction) {
+			eachtransaction.setIncome(ghService.getLatestMonthlyGroupBudget(gid,uid, month));
+		}
 		return foundTransaction;
 	}
 
