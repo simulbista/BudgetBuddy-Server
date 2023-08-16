@@ -162,11 +162,14 @@ public class GroupService {
 		Optional<Group> foundGroup = groupRepository.findById(gid);
 		List<User> existingMembersOfTheGroup = userRepository.findAllBygid(gid).get();
 
-		// removing all the existing members from the group
+		// removing all the existing members(except for the group head) from the group
 		// because we are using the new list (from request body) as the only members in
 		// the group
 		for (User existingMember : existingMembersOfTheGroup) {
-			existingMember.setGid(null);
+			//if the user is not a group head, remove them
+			if(existingMember.getUid()!=foundGroup.get().getGhid()){
+				existingMember.setGid(null);
+			}
 		}
 
 		// check1: if the group exists
