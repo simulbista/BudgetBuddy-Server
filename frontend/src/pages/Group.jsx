@@ -53,7 +53,6 @@ const Group = () => {
   };
 
   const handleFieldChange = (field, value) => {
-    console.log(field, typeof value);
     setSelectedRow((prevRow) => ({
       ...prevRow,
       [field]: value,
