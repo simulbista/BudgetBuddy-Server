@@ -175,7 +175,7 @@ const Group = () => {
   // Calculate TotalIncome, TotalExpense, and Total
 
   const totalExpense = transactions.reduce(
-    (sum, transaction) => sum + parseFloat(transaction.amount),
+    (sum, transaction) => sum + parseFloat(transaction.expense),
     0
   );
 
