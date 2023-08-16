@@ -22,12 +22,12 @@ public class TransactionController {
 
 	@Autowired
 	TransactionService transactionService;
-	
+
 	// create a transaction (individual or group)
 	// API end point: POST /api/transaction/{uid}
 	// if request body has gid, then its a group transaction
 	@PostMapping("/{uid}")
-	public ResponseEntity<String> addTransaction(@PathVariable String uid, @RequestBody Transaction transaction){
+	public ResponseEntity<String> addTransaction(@PathVariable String uid, @RequestBody Transaction transaction) {
 		try {
 			transactionService.addTransaction(uid, transaction);
 			String successMessage = "Transaction has been created!";
@@ -37,22 +37,33 @@ public class TransactionController {
 			return new ResponseEntity<String>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	// get transaction records by month
 	// API end point: GET /api/transaction/month/{month}/by/{uid}
-	//give full names of the month - e.g.: august
+	// give full names of the month - e.g.: august
 	@GetMapping("month/{month}/by/{uid}")
-	public List<Transaction> getTransactionByMonth(@PathVariable String month, @PathVariable String uid) throws Exception {
+	public List<Transaction> getTransactionByMonth(@PathVariable String month, @PathVariable String uid)
+			throws Exception {
 		return transactionService.getTransactionByMonth(month, uid);
 	}
-	
-	// get transaction records by month
+
+	// get transaction records by month for a group
+	// API end point: GET /api/transaction/month/{month}/by/group/{gid}/by/{uid}
+	// give full names of the month - e.g.: august
+	@GetMapping("month/{month}/by/group/{gid}/by/{uid}")
+	public List<Transaction> getTransactionByMonthForGroup(@PathVariable String month, @PathVariable String gid,
+			@PathVariable String uid) throws Exception {
+		return transactionService.getTransactionByMonthForGroup(month, gid, uid);
+	}
+
+	// get transaction records by category
 	// API end point: GET /api/transaction/category/{category}/by/{uid}
 	@GetMapping("category/{category}/by/{uid}")
-	public List<Transaction> getTransactionByCategory(@PathVariable String category, @PathVariable String uid) throws Exception {
+	public List<Transaction> getTransactionByCategory(@PathVariable String category, @PathVariable String uid)
+			throws Exception {
 		return transactionService.getTransactionByCategory(category, uid);
 	}
-	
+
 	// delete transaction
 	// API end point: DELETE /api/transaction/{tid}/by{uid}
 	@DeleteMapping("/{tid}/by/{uid}")
@@ -66,8 +77,8 @@ public class TransactionController {
 			message = "Error deleting transaction: " + e.getMessage();
 			return new ResponseEntity<String>(message, HttpStatus.BAD_REQUEST);
 		}
-	} 
-	
+	}
+
 	// update transaction
 	// API end point: PUT /api/transaction/{uid}
 	@PutMapping("/{uid}")
