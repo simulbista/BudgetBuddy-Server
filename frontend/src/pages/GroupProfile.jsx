@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Typography,
   Button,
@@ -12,9 +13,9 @@ import {
 
 const GroupProfile = () => {
   const [groupInfo, setGroupInfo] = useState({
-    groupName: "",
+    gName: "",
     members: [],
-    groupBudget: 0.0,
+    defaultBudget: 0.0,
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -23,23 +24,27 @@ const GroupProfile = () => {
   const [memberInputs, setMemberInputs] = useState([]);
   const [groupBudgetInput, setGroupBudgetInput] = useState(0.0);
 
+  const uid = "64dc57cf7214f15e7d70edcd";
+  const gid = "64dbc09b64142a3594918f5d";
+
   useEffect(() => {
-    // const fetchGroupInfo = async () => {
-    //   try {
-    //     // Make a GET request to fetch the expenses from the API endpoint
-    //     const response = await axios.get(`./api/group`, {
-    //       headers: {
-    //         Authorization: token,
-    //       },
-    //     });
-    //      Set the retrieved  data to the component state
-    //     setGroupInfo(response.data);
-    //   } catch (error) {
-    //     console.error("Error fetching transactions:", error);
-    //   }
-    // };
-    // fetchGroupInfo();
+    fetchGroupInfo();
   }, []);
+
+  const fetchGroupInfo = async () => {
+    try {
+      // Make a GET request to fetch the expenses from the API endpoint
+      const response = await axios.get(`./api/group/${gid}/by/${uid}`, {
+        headers: {
+          // Authorization: token,
+        },
+      });
+      // Set the retrieved  data to the component state
+      setGroupInfo(response.data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
 
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -58,13 +63,42 @@ const GroupProfile = () => {
     setMemberInputs(updatedMemberInputs);
   };
 
-  const handleSaveGroupInfo = () => {
-    setGroupInfo({
-      groupName: groupNameInput,
-      members: memberInputs.filter((input) => input.trim() !== ""),
-      groupBudget: parseFloat(groupBudgetInput),
-    });
-    handleCloseModal();
+  const handleSaveGroupInfo = async () => {
+    if (groupInfo.gName.length) {
+      try {
+        // Make a POST request to the add transaction API endpoint
+        const groupData = {
+          gName: groupInfo.gName,
+          gid: groupInfo.gid,
+        };
+        await axios.put(`/api/group/${uid}`, groupData, {
+          headers: {
+            // Authorization: token,
+          },
+        });
+        fetchGroupInfo();
+        handleCloseModal();
+      } catch (error) {
+        console.error("Error updating group:", error);
+      }
+    } else {
+      try {
+        // Make a POST request to the add transaction API endpoint
+        const groupData = {
+          gName: groupInfo.gName,
+          defaultBudget: groupInfo.defaultBudget,
+        };
+        await axios.post(`/api/group/${uid}`, groupData, {
+          headers: {
+            // Authorization: token,
+          },
+        });
+        fetchGroupInfo();
+        handleCloseModal();
+      } catch (error) {
+        console.error("Error creating group:", error);
+      }
+    }
   };
 
   const handleEditGroup = () => {
@@ -76,8 +110,9 @@ const GroupProfile = () => {
 
   const handleLeaveGroup = () => {
     setGroupInfo({
-      groupName: "",
+      gName: "",
       members: [],
+      defaultBudget: 0.0,
     });
   };
 
@@ -87,11 +122,11 @@ const GroupProfile = () => {
         Group Profile
       </Typography>
       {groupInfo.groupName && (
-        <Typography variant="h6">Group Name: {groupInfo.groupName}</Typography>
+        <Typography variant="h6">Group Name: {groupInfo.gName}</Typography>
       )}
-      {groupInfo.groupBudget !== 0 && (
+      {groupInfo.defaultBudget !== 0 && (
         <Typography variant="h6">
-          Group Budget: {groupInfo.groupBudget}
+          Group Budget: {groupInfo.defaultBudget}
         </Typography>
       )}
       {groupInfo.members.length > 0 && (
@@ -113,7 +148,7 @@ const GroupProfile = () => {
           </List>
         </div>
       )}
-      {groupInfo.groupName && (
+      {groupInfo.gName && (
         <div>
           <Button
             variant="outlined"
@@ -153,7 +188,7 @@ const GroupProfile = () => {
           </Button>
         </div>
       )}
-      {!groupInfo.groupName && (
+      {!groupInfo.gName && (
         <Button
           variant="outlined"
           color="primary"

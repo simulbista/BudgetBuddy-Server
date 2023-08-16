@@ -398,9 +398,7 @@ const Personal = () => {
                           <FormControlLabel
                             control={
                               <Switch
-                                checked={
-                                  selectedRow.isIncome
-                                }
+                                checked={selectedRow.isIncome}
                                 onChange={(e) =>
                                   handleFieldChange("isIncome", e.target.value)
                                 }
@@ -417,9 +415,7 @@ const Personal = () => {
                         <TextField
                           label="Amount"
                           type="number"
-                          value={
-                            selectedRow.amount
-                          }
+                          value={selectedRow.amount}
                           onChange={(e) =>
                             handleFieldChange("amount", e.target.value)
                           }
