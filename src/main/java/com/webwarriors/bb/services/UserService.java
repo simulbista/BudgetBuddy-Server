@@ -1,10 +1,18 @@
 package com.webwarriors.bb.services;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.webwarriors.bb.models.Group;
@@ -13,7 +21,7 @@ import com.webwarriors.bb.repositories.GroupRepository;
 import com.webwarriors.bb.repositories.UserRepository;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
 	@Autowired
 	private UserRepository userRepository;
@@ -43,6 +51,17 @@ public class UserService {
 		return userRepository.findAllBygid(gid);
 	}
 
+//	@Autowired
+//	private BCryptPasswordEncoder passwordEncoder;
+
+	
+	public BCryptPasswordEncoder encoder() {
+		return new BCryptPasswordEncoder();
+	}
+	
+	@Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 	// add user
 	// API end point: POST /api/user/
 	public User addUser(User user) throws Exception {
@@ -54,6 +73,8 @@ public class UserService {
 		// to any group during creation)
 		user.setGid(null);
 
+		// BCryptPassword
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		if (isEmailExist || isNickNameExist)
 			throw new Exception("Email or nickname is already taken!");
 		return userRepository.save(user);
@@ -80,6 +101,7 @@ public class UserService {
 		return userRepository.save(updatedUser);
 	}
 
+	
 	// add the user to a group
 	// API end point: POST /api/user/{uid}/addgroup/{gid}
 	public User addUserToGroup(String uid, String gid) throws Exception {
@@ -145,6 +167,23 @@ public class UserService {
 		User updatedUser = userRepository.save(user);
 
 		return updatedUser;
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+
+		User user = userRepository.findByEmail(email);
+		System.out.println(email);
+		if (user == null) {
+			throw new UsernameNotFoundException("No user found with email: " + email);
+		}
+		System.out.println(user.getPassword());
+		// convert roles into a list of GrantedAuthority and pass that list to the User
+		// constructor
+		List<GrantedAuthority> authorities = new ArrayList<>();
+		authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+
+		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
 	}
 
 }
