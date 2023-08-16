@@ -121,20 +121,25 @@ public class GroupService {
 		String resultghid = foundGroup.get().getGhid();
 		String resultgid = foundGroup.get().getGid();
 
-		Optional<List<User>> optionalMembers = userRepository.findAllBygid(gid);
-		String eachMember;
-		List<String> resultMemberEmails = new ArrayList<>();
-		for (User eachMemberUser : optionalMembers.get()) {
-			eachMember = eachMemberUser.getEmail();
-			resultMemberEmails.add(eachMember);
+		//creating the following data structure (nickname and email pair) to be returned
+		//resultMemberNickAndEmail = ["sim:sb@gmail.com","pal:pb@gmail.com"]
+		List<User> members = userRepository.findAllBygid(gid).get();
+		String eachMemberNick,eachMemberEmail;
+		List<String> resultMemberNickAndEmail = new ArrayList<>();
+		for (User eachMemberUser : members) {
+			eachMemberNick = eachMemberUser.getNickName();
+			eachMemberEmail = eachMemberUser.getEmail();
+			resultMemberNickAndEmail.add(eachMemberNick.concat(":").concat(eachMemberEmail));
 		}
+		
+//		storing rest of the required fields other than nickname and email pair and returning it back
 
 		Map<String, Object> searchedGroup = new HashMap<>();
 		searchedGroup.put("defaultBudget", resultGroupBudget);
 		searchedGroup.put("gName", resultGroupName);
 		searchedGroup.put("ghid", resultghid);
 		searchedGroup.put("gid", resultgid);
-		searchedGroup.put("members", resultMemberEmails);
+		searchedGroup.put("members", resultMemberNickAndEmail);
 
 		return searchedGroup;
 	}
