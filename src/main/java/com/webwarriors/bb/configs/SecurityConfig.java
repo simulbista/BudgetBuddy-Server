@@ -41,7 +41,7 @@ public class SecurityConfig{
 	        .and()
             .csrf().disable()
             .authorizeRequests()
-            .requestMatchers("/", "/index.html","/static/**", "/assets/**","/error","/api/auth","api/sessionDetails","api/authDetails","api/user/").permitAll()
+            .requestMatchers("/", "/index.html","/static/**", "/assets/**","/error","/api/auth","api/sessionDetails","api/authDetails","api/user/","/v3/api-docs","/v3/api-docs/**","swagger-ui/**","/swagger-ui.html").permitAll()
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(authenticationFilter(), UsernamePasswordAuthenticationFilter.class)

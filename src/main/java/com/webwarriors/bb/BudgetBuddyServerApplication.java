@@ -7,17 +7,18 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+
 @SpringBootApplication
 //enabling mongo
 @EnableMongoRepositories
 //to make sure that the created and updated date in the mongo schema get updated
 @EnableMongoAuditing
-public class BudgetBuddyServerApplication implements WebMvcConfigurer{
+public class BudgetBuddyServerApplication implements WebMvcConfigurer {
 
 	public static void main(String[] args) {
 		SpringApplication.run(BudgetBuddyServerApplication.class, args);
 	}
-	
+
 	public void addViewControllers(ViewControllerRegistry registry) {
 		registry.addViewController("/").setViewName("index.html");
 	}
